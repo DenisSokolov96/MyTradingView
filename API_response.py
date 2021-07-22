@@ -22,7 +22,7 @@ def get_news():
 
 # для новостей сайта указать id
 def get_news_id(news_id):
-    api_result = requests.get("http://iss.moex.com/iss/sitenews/" + news_id + ".json")
+    api_result = requests.get("http://iss.moex.com/iss/sitenews/" + str(news_id) + ".json")
     api_response = api_result.json()
     return api_response
 
@@ -43,6 +43,9 @@ def get_unrus_stock():
         "off&iss.only=securities&securities.columns=SHORTNAME,SECID,PREVADMITTEDQUOTE")
     api_response = api_result.json()
     return api_response
+
+
+
 
 
 

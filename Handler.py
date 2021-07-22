@@ -1,22 +1,24 @@
-from tabulate import tabulate
-
 from API_response import *
-
-list_news = []
-
+from datetime import datetime
+from bs4 import BeautifulSoup
 
 # список новостей
 def get_list_news():
+    list_news = []
     for news in get_news()['sitenews']['data']:
-        list_news.append(news)
+        d = datetime.strptime(news[3], '%Y-%m-%d %H:%M:%S')
+        list_news.append([d.strftime("%H:%M %d/%m/%Y"), news[2], news[0]])
+    return list_news
 
-    for element in list_news:
-        date = element[3].split(" ")
-        print(date[0] + " " + element[2])
 
 # новость по id
-#def get_news_id():
-#    for news in API_response.get_news_id(news_id)['sitenews']['data']:
+def get_newtext_id(id):
+    news = get_news_id(id)['content']['data'][0][3]
+    soup = BeautifulSoup(news, "html.parser")
+    for elm in soup(["script", "style"]):
+        elm.extract()
+    text = soup.get_text()
+    return text
 
 
 # Получить российскте акции

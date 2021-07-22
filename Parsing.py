@@ -1,9 +1,34 @@
+import PySimpleGUI as sg
 import pandas as pd
 
+from Assets import Assets
 
-def load_deposits_write_offs():
-    df = pd.read_excel(r'D:\Загрузки\Зачисления-и-Списания_2020-07-21--2021-07-21.xlsx', sheet_name='Движение ДС')
-    return df
+assets = Assets()
+
+
+def load_data(parameter):
+    if parameter == 1:
+        if assets.deposits_write_offs is None:
+            assets.deposits_write_offs = load_menu()
+            return assets.deposits_write_offs
+        else:
+            return assets.deposits_write_offs
+    if parameter == 0:
+        if assets.doc_deals is None:
+            assets.doc_deals = load_menu()
+            return assets.doc_deals
+        else:
+            return assets.doc_deals
+
+
+def load_menu():
+    ftypes = [('Документы', '*.xlsx'), ('Документы', '*.xls'), ('Все файлы', '*')]
+    dlg = sg.filedialog.Open(filetypes=ftypes)
+    fl = dlg.show()
+    if fl != '':
+        df = pd.read_excel(fl)
+        return df
+    return
 
 
 def pars_doc_elem(doc):
@@ -49,11 +74,6 @@ def pars_doc_elem(doc):
     return list_header, list_values, write_text
 
 
-def load_deals():
-    df = pd.read_excel(r'D:\Загрузки\Сделки_2020-07-21--2021-07-21.xlsx', sheet_name='Сделки')
-    return df
-
-
 def pars_doc_deals(doc):
     list_header = []
     list_values = []
@@ -88,6 +108,5 @@ def pars_doc_deals(doc):
 
 def my_stock_info(doc):
     write_text = ""
-
 
     return write_text
