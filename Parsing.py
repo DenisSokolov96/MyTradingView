@@ -1,9 +1,6 @@
-import PySimpleGUI as sg
-import pandas as pd
-
 from Assets import Assets
-
-assets = Assets()
+from Binding import *
+from Binding import assets
 
 
 def load_data(parameter):
@@ -21,17 +18,7 @@ def load_data(parameter):
             return assets.doc_deals
 
 
-def load_menu():
-    ftypes = [('Документы', '*.xlsx'), ('Документы', '*.xls'), ('Все файлы', '*')]
-    dlg = sg.filedialog.Open(filetypes=ftypes)
-    fl = dlg.show()
-    if fl != '':
-        df = pd.read_excel(fl)
-        return df
-    return
-
-
-def pars_doc_elem(doc):
+def write_offs(doc):
     comission = 0
     my_money = 0
     dividents = 0
@@ -59,16 +46,27 @@ def pars_doc_elem(doc):
     write_text += 'Зачисленная сумма:\t' + str(my_money) + 'р.\n'
     write_text += 'Зачисленно дивидендов:\t' + str(dividents) + 'р.\n'
     write_text += 'Оплачено налога:\t\t' + str(tax) + 'р.\n'
-    write_text += 'Итог:\t\t\t' + str(my_money - comission - tax + dividents) + 'р.\n'
+    write_text += 'Итог:\t\t\t' + str(round(my_money - comission - tax + dividents)) + 'р.\n'
 
     list_header = []
     list_values = []
-    for element in doc.columns:
-        list_header.append(element)
+    filter = [0, 3, 6, 7, 9, 10, 11, 12, 13]
+    count = 0
+    while count < len(doc.columns):
+        if count not in filter:
+            list_header.append(doc.columns[count])
+        count += 1
+
     for element in doc.values:
         list_data = []
-        for data in element:
-            list_data.append(data)
+        count = 0
+        while count < len(element):
+            if count not in filter:
+                if count in (1, 2):
+                    element[count] = datetime.strptime(str(element[count]),
+                                                       '%Y-%m-%d %H:%M:%S').strftime("%H:%M %d/%m/%Y")
+                list_data.append(element[count])
+            count += 1
         list_values.append(list_data)
 
     return list_header, list_values, write_text
@@ -77,7 +75,7 @@ def pars_doc_elem(doc):
 def pars_doc_deals(doc):
     list_header = []
     list_values = []
-    filter = [0, 1, 6, 13, 17]
+    filter = [0, 1, 6, 13, 17, 18, 19, 20, 21, 22]
     count = 0
     while count < len(doc.columns):
         if count not in filter:
@@ -100,9 +98,13 @@ def pars_doc_deals(doc):
             if count not in filter:
                 if count == 16:
                     element[count] = round(element[count], 2)
+                if count in (2, 3):
+                    element[count] = datetime.strptime(str(element[count]),
+                                                       '%Y-%m-%d %H:%M:%S').strftime("%H:%M %d/%m/%Y")
                 list_data.append(element[count])
             count += 1
         list_values.append(list_data)
+
     return list_header, list_values
 
 
