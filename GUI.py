@@ -4,6 +4,7 @@ import requests
 
 sizeX = 1150
 sizeY = 600
+ico = 'data/free-icon-statistics-4624030.ico'
 
 
 # основное окно
@@ -146,13 +147,16 @@ def wind_my_deals(doc):
 
 # просмотр портфеля
 def wind_portfolio():
-    list_header, list_values = get_portfolio()
+    list_header, list_values = get_my_portfolio()
     if list_header is None:
         return
 
     layout = [[sg.Button("Круговая диаграмма", button_color=("Black", "lightblue"), size=(20, 1), key='bt_diag_cir'),
               sg.Button("Столбчатая диаграмма", button_color=("Black", "lightblue"), size=(20, 1),
-                         key='bt_diag_column')],
+                         key='bt_diag_column'),
+               sg.Button("Проданные активы", button_color=("Black", "lightblue"), size=(20, 1),
+                         key='bt_sal_stocks')
+               ],
               [sg.Table(values=list_values, headings=list_header, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -172,6 +176,30 @@ def wind_portfolio():
             get_diagramma_circle()
         if event == 'bt_diag_column':
             get_diagramma_column()
+        if event == 'bt_sal_stocks':
+            wind_history()
+        if event in (sg.WIN_CLOSED, 'Quit'):
+            break
+        new_win.close()
+
+
+# просмотр исторического портфеля
+def wind_history():
+    layout = [[sg.Table(values=assets.history_stocks, headings=assets.portfolio[0], def_col_width=20, max_col_width=40,
+                        background_color='lightblue',
+                        text_color='Black',
+                        auto_size_columns=True,
+                        justification='centre',
+                        num_rows=20,
+                        alternating_row_color='white',
+                        key='-TABLE_DEALS-',
+                        selected_row_colors=('Black', 'lightgray'),
+                        row_height=30)]
+              ]
+    sg.theme('BlueMono')
+    new_win = sg.Window('Мои данные', layout)
+    while True:
+        event, values = new_win.read()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
         new_win.close()
@@ -201,6 +229,7 @@ def check_net():
 
 
 if __name__ == '__main__':
+    sg.set_global_icon(ico)
     assets = Assets()
     if check_net():
         main_wind()

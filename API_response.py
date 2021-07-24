@@ -54,14 +54,6 @@ def get_unrus_stock():
 
 
 
-def test2():
-    # все акции
-    api_result = requests.get(
-        "http://iss.moex.com/iss/securities.json")
-    api_response = api_result.json()
-    print(api_response['securities']['data'])
-
-
 def test4():
     # Получить данные по конкретному инструменту рынка
     api_result = requests.get("https://iss.moex.com/iss/engines/stock/markets/shares/securities/MTSS.json")
@@ -73,19 +65,6 @@ def test5():
     # / iss / securities / [security] / indices
     # Список индексов в которые входит бумага
     return
-
-
-def test6():
-    # Получить историю торгов для указанной бумаги на выбранной группе режимов торгов за указанный интервал дат.
-    # / iss / history / engines / [engine] / markets / [market] / sessions / [session] / boardgroups / [boardgroup] / securities / [security]
-    return
-
-
-def test7():
-    # Получить стакан заявок по инструменту.
-    # Например: https://iss.moex.com/iss/engines/stock/markets/shares/securities/AFLT/orderbook.xml
-    return
-
 
 def test8():
     # Текущие цены бумаг

@@ -2,6 +2,10 @@ from API_response import *
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+from Assets import Assets
+
+assets = Assets()
+
 # список новостей
 def get_list_news():
     list_news = []
@@ -28,6 +32,13 @@ def get_ru():
     list_columns = rename_col(data['securities']['columns'])
     for stock in data['securities']['data']:
         list_data.append(stock)
+
+    if len(assets.rus_stocks) == 0:
+        list_short = []
+        for el in list_data:
+            list_short.append(el[0:2])
+        assets.rus_stocks = list_short
+
     return list_data, list_columns, "Российские акции"
 
 
@@ -38,6 +49,13 @@ def get_unru():
     list_columns = rename_col(data['securities']['columns'])
     for stock in data['securities']['data']:
         list_data.append(stock)
+
+    if len(assets.unrus_stocks) == 0:
+        list_short = []
+        for el in list_data:
+            list_short.append(el[0:2])
+        assets.unrus_stocks = list_short
+
     return list_data, list_columns, "Зарубежные акции"
 
 

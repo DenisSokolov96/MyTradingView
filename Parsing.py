@@ -1,6 +1,6 @@
 from Assets import Assets
 from Binding import *
-from Binding import assets
+from Assets import Assets
 
 
 def load_data(parameter):
