@@ -1,10 +1,7 @@
-from Handler import *
 from Parsing import *
-import requests
 
 sizeX = 1150
 sizeY = 600
-ico = 'data/free-icon-statistics-4624030.ico'
 
 
 # основное окно
@@ -218,20 +215,3 @@ def wind_error():
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     window.close()
-
-
-def check_net():
-    try:
-        response = requests.get("http://www.google.com")
-        return True
-    except requests.ConnectionError:
-        return False
-
-
-if __name__ == '__main__':
-    sg.set_global_icon(ico)
-    assets = Assets()
-    if check_net():
-        main_wind()
-    else:
-        wind_error()
