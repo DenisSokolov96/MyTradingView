@@ -4,12 +4,14 @@
 '''
 import os
 import sys
-
+import warnings
 import PySimpleGUI as sg
 import requests
 
 from Assets import Assets
 from GUI import main_wind, wind_error
+
+warnings.filterwarnings("ignore")
 
 
 def check_net():
