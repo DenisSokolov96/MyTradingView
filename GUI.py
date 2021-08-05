@@ -11,7 +11,7 @@ sizeY = 600
 def main_wind():
     sg.theme('Light Green')
     menu_def = [['&Меню', ['&Обновить новости']],
-                ['&Информация на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации']],
+                ['&Информация на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации', '&Фонды']],
                 ['&Мой портфель', ['&Просмотреть портфель', '&Мои сделки', '&Операции по счету', '&График ввода ДС']]]
     news_list = api_mcx.Handler.get_list_news()
     layout = [[sg.Menu(menu_def, tearoff=False)],
@@ -59,6 +59,11 @@ def func_menu(event, window, values, news_list):
         wind_table(list_data, list_columns, info)
         window['out'].update("")
         return
+    if event == "Фонды":
+        list_data, list_columns, info = api_mcx.Handler.get_pies()
+        wind_table(list_data, list_columns, info)
+        window['out'].update("")
+        return
     ################################################
     if event == "Обновить новости":
         window['-TABLE_NEWS-'].update(api_mcx.Handler.get_list_news())
@@ -102,7 +107,7 @@ def wind_table(list_data, list_columns, info):
         event, values = new_win.read()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
-        new_win.close()
+    new_win.close()
 
 
 # Операции по счету
@@ -126,7 +131,7 @@ def wind_my_money(doc):
         event, values = new_win.read()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
-        new_win.close()
+    new_win.close()
 
 
 # Мои сделки
@@ -150,7 +155,7 @@ def wind_my_deals(doc):
         event, values = new_win.read()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
-        new_win.close()
+    new_win.close()
 
 
 # просмотр портфеля
@@ -159,12 +164,12 @@ def wind_portfolio():
     list_header_bonds, list_values_bonds = tools.Bonds.get_my_bonds()
     list_header_pies, list_values_pies = tools.Pie.get_my_pies()
 
-    layout = [[sg.Button("Круговая диаграмма", button_color=("Black", "lightblue"), size=(20, 1), key='bt_diag_cir'),
-              sg.Button("Столбчатая диаграмма", button_color=("Black", "lightblue"), size=(20, 1),
-                         key='bt_diag_column'),
-               sg.Button("Проданные активы", button_color=("Black", "lightblue"), size=(20, 1),
-                         key='bt_sal_stocks')
-               ],
+    menu_def = [['&Общие диаграммы', ['&Виды акций', '&Круговая диаграмма', '&Столбчатая диаграмма',
+                                      '&Состав портфеля по категориям']],
+                ['&Фонды', ['&Состав фондов']],
+                ['&Информация', ['&Проданные активы']]]
+
+    layout = [[sg.Menu(menu_def, tearoff=False)],
               [sg.Table(values=list_values_stocks, headings=list_header_stocks, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -200,20 +205,27 @@ def wind_portfolio():
     new_win = sg.Window('Мои данные', layout)
     while True:
         event, values = new_win.read()
-        if event == 'bt_diag_cir':
+        if event == 'Круговая диаграмма':
             get_diagramma_circle()
-        if event == 'bt_diag_column':
+        if event == 'Столбчатая диаграмма':
             get_diagramma_column()
-        if event == 'bt_sal_stocks':
+        if event == 'Проданные активы':
             wind_history()
+        if event == 'Состав портфеля по категориям':
+            get_diagramma_compos()
+        if event == 'Виды акций':
+            get_rus_unrus_stocks()
+        if event == 'Состав фондов':
+            get_all_pies()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
-        new_win.close()
+    new_win.close()
 
 
 # просмотр исторического портфеля
 def wind_history():
-    layout = [[sg.Table(values=assets.history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20, max_col_width=40,
+    layout = [[sg.Table(values=assets.history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20,
+                        max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
                         auto_size_columns=True,
@@ -224,8 +236,8 @@ def wind_history():
                         selected_row_colors=('Black', 'lightgray'),
                         row_height=30)],
               [sg.Table(values=assets.history_bonds, headings=assets.portfolio_bonds[0][0:2]
-                                                              +assets.portfolio_bonds[0][3:5]
-                                                              +assets.portfolio_bonds[0][6:9],
+                                                              + assets.portfolio_bonds[0][3:5]
+                                                              + assets.portfolio_bonds[0][6:9],
                         def_col_width=20,
                         max_col_width=40,
                         background_color='lightblue',
@@ -255,7 +267,7 @@ def wind_history():
         event, values = new_win.read()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
-        new_win.close()
+    new_win.close()
 
 
 def wind_error():

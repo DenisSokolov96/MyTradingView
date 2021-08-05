@@ -102,19 +102,8 @@ def get_bonds():
 
 # Обаботать фонды
 def get_pies():
-    list_columns = ['Фонд', 'Цена пая']
-    info_pies = None
+    list_columns = ['Наименование', 'Цена пая(р.)']
     pies_price = get_pie_api()
-
-    # if bool(assets.pies) is False:
-    #     info_pies = get_name_pies_api()
-
-    # dict = {}
-    # if info_pies is not None:
-    #     for pies in info_pies['securities']['data']:
-    #         dict[pies[0]] = [pies[1], 0, pies[2], pies[3]]
-    # else:
-    #     dict = assets.pies
 
     dict = {}
     for pies in pies_price['marketdata']['data']:

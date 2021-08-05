@@ -2,6 +2,7 @@ import Parsing
 from Assets import Assets
 from Binding import check_none
 import api_mcx
+from tools.StructRep import dict_pies
 
 assets = Assets()
 
@@ -11,57 +12,51 @@ def parsing_pies_portfolio(doc):
         api_mcx.Handler.get_pies()
     list_header = ['###', 'Наименование', 'Количество', 'Инвестировано',
                    'Продано(шт.)', 'Продажа(р.)', '1 Пай(р.)']
-    list_values = []
     portfolio_pies = {}
     for element in reversed(doc.values):
         if element[5] == 'Пай':
-            list_el = portfolio_pies.get(element[4])
-            if list_el is None:
-                portfolio_pies[element[4]] = [element[4], element[8], round(element[16], 2), 0, 0]
+            if portfolio_pies.get(element[4]) is None:
+                portfolio_pies[element[4]] = dict_pies.copy()
+                portfolio_pies[element[4]]['name'] = element[4]
+                portfolio_pies[element[4]]['count'] = element[8]
+                portfolio_pies[element[4]]['invest'] = round(element[16], 2)
             else:
                 if element[7] == 'Покупка':
-                    portfolio_pies[element[4]] = [element[4], element[8] + list_el[1],
-                                                  round(element[16] + list_el[2], 2), list_el[3], list_el[4]]
+                    portfolio_pies[element[4]]['count'] += element[8]
+                    portfolio_pies[element[4]]['invest'] += round(element[16], 2)
                 else:
-                    portfolio_pies[element[4]] = [element[4], list_el[1], list_el[2],
-                                                  element[8] + list_el[3], round(list_el[4] + element[16], 2)]
+                    portfolio_pies[element[4]]['count'] += element[8]
+                    portfolio_pies[element[4]]['invest'] += round(element[16])
 
-    history_pies = []
-    for element in portfolio_pies.values():
-        if element[1] > element[3]:
-            if element[3] > 0:
-                element.append(round(element[4] / element[3], 2))
-            else:
-                element.append(0)
-            list_values.append(element)
+    history_pies = {}
+    count_value = 1
+    count_history = 1
+    for element_dict in portfolio_pies.values():
+        if element_dict['count'] > element_dict['sold_count']:
+            if element_dict['sold_count'] > 0:
+                element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+            element_dict['num'] = count_value
+            count_value += 1
         else:
-            element.append(round(element[4] / element[3], 2))
-            history_pies.append(element)
+            element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+            element_dict['num'] = count_history
+            count_history += 1
+            history_pies[element_dict['name']] = element_dict
 
-    count = 1
-    for element in list_values:
-        element.insert(0, count)
-        count += 1
-
-    count = 1
-    for element in history_pies:
-        element.insert(0, count)
-        count += 1
-
-    assets.portfolio_pies = [list_header, list_values]
+    assets.portfolio_pies = [list_header, portfolio_pies]
     assets.history_pies = check_none(history_pies, len(list_header))
 
-    return list_header, list_values
+    return list_header, portfolio_pies
 
 
 def get_my_pies():
     if len(assets.portfolio_pies[0]) > 0:
-        return assets.portfolio_pies
+        return handler_for_out(assets.portfolio_pies)
     else:
         doc = Parsing.load_data(0)
         if doc is None:
             return None, None
-        return parsing_pies_portfolio(doc)
+        return handler_for_out(parsing_pies_portfolio(doc))
 
 
 def get_name(tiker):
@@ -70,3 +65,15 @@ def get_name(tiker):
         return tiker_info[0]
     return ""
 
+
+def handler_for_out(data):
+    list_header = data[0]
+    list_value = []
+
+    for dict in data[1].values():
+        temp = []
+        for val in dict.values():
+            temp.append(val)
+        list_value.append(temp)
+
+    return list_header, list_value
