@@ -137,7 +137,6 @@ def wind_my_money(doc):
 # Мои сделки
 def wind_my_deals(doc):
     list_header, list_values = pars_doc_deals(doc)
-    write_text = my_stock_info(doc)
     layout = [[sg.Table(values=list_values, headings=list_header, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -164,8 +163,10 @@ def wind_portfolio():
     list_header_bonds, list_values_bonds = tools.Bonds.get_my_bonds()
     list_header_pies, list_values_pies = tools.Pie.get_my_pies()
 
-    menu_def = [['&Общие диаграммы', ['&Виды акций', '&Круговая диаграмма', '&Столбчатая диаграмма',
+    menu_def = [['&Общие диаграммы', ['&Круговая диаграмма', '&Столбчатая диаграмма',
                                       '&Состав портфеля по категориям']],
+                ['&Акции', ['&Виды акций']],
+                ['&Облигации', ['&Виды облигаций']],
                 ['&Фонды', ['&Состав фондов']],
                 ['&Информация', ['&Проданные активы']]]
 
@@ -217,6 +218,8 @@ def wind_portfolio():
             get_rus_unrus_stocks()
         if event == 'Состав фондов':
             get_all_pies()
+        if event == 'Виды облигаций':
+            get_all_bonds()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()
@@ -224,7 +227,10 @@ def wind_portfolio():
 
 # просмотр исторического портфеля
 def wind_history():
-    layout = [[sg.Table(values=assets.history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20,
+    list_history_stocks = to_list(assets.history_stocks)
+    list_history_bonds = to_list(assets.history_bonds)
+    list_history_pies = to_list(assets.history_pies)
+    layout = [[sg.Table(values=list_history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20,
                         max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -235,9 +241,7 @@ def wind_history():
                         key='-TABLE_DEALS-',
                         selected_row_colors=('Black', 'lightgray'),
                         row_height=30)],
-              [sg.Table(values=assets.history_bonds, headings=assets.portfolio_bonds[0][0:2]
-                                                              + assets.portfolio_bonds[0][3:5]
-                                                              + assets.portfolio_bonds[0][6:9],
+              [sg.Table(values=list_history_bonds, headings=assets.portfolio_bonds[0],
                         def_col_width=20,
                         max_col_width=40,
                         background_color='lightblue',
@@ -249,7 +253,7 @@ def wind_history():
                         key='-TABLE_BONDS-',
                         selected_row_colors=('Black', 'lightgray'),
                         row_height=30),
-              sg.Table(values=assets.history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
+              sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
                         max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',

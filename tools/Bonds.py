@@ -1,6 +1,7 @@
 import Parsing
 from Assets import Assets
-from Binding import check_none
+from Binding import check_none, handler_for_out
+from tools.StructRep import dict_bonds
 import api_mcx
 
 assets = Assets()
@@ -11,58 +12,56 @@ def parsing_bonds_portfolio(doc):
         api_mcx.Handler.get_bonds()
     list_header = ['###', 'Наименование', 'Компания', 'Количество', 'Инвестировано', 'Доход %',
                    'Продано(шт.)', 'Продажа(р.)', '1 Бонд(р.)']
-    list_values = []
     portfolio_bonds = {}
     for element in reversed(doc.values):
         if element[5] == 'Облигация':
-            list_el = portfolio_bonds.get(element[4])
-            if list_el is None:
-                portfolio_bonds[element[4]] = [element[4], element[8], round(element[16], 2), 0, 0]
+            if portfolio_bonds.get(element[4]) is None:
+                portfolio_bonds[element[4]] = dict_bonds.copy()
+                portfolio_bonds[element[4]]['name'] = element[4]
+                portfolio_bonds[element[4]]['count'] = element[8]
+                portfolio_bonds[element[4]]['invest'] = round(element[16], 2)
             else:
                 if element[7] == 'Покупка':
-                    portfolio_bonds[element[4]] = [element[4], element[8] + list_el[1],
-                                                   round(element[16] + list_el[2], 2), list_el[3], list_el[4]]
+                    portfolio_bonds[element[4]]['count'] += element[8]
+                    portfolio_bonds[element[4]]['invest'] += round(element[16], 2)
                 else:
-                    portfolio_bonds[element[4]] = [element[4], list_el[1], list_el[2],
-                                                    element[8] + list_el[3], round(list_el[4] + element[16], 2)]
+                    portfolio_bonds[element[4]]['sold_count'] += element[8]
+                    portfolio_bonds[element[4]]['sold'] += round(element[16])
 
-    history_bonds = []
-    for element in portfolio_bonds.values():
-        if element[1] > element[3]:
-            if element[3] > 0:
-                element.append(round(element[4]/element[3], 2))
-            else:
-                element.append(0)
-            list_values.append(element)
+    history_bonds = {}
+    count_value = 1
+    count_history = 1
+    for element_dict in portfolio_bonds.values():
+        if element_dict['count'] > element_dict['sold_count']:
+            if element_dict['sold_count'] > 0:
+                element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+            element_dict['num'] = count_value
+            element_dict['company'] = get_name(element_dict['name'])
+            element_dict['income'] = get_income(element_dict['name'])
+            count_value += 1
         else:
-            element.append(round(element[4]/element[3], 2))
-            history_bonds.append(element)
+            element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+            element_dict['num'] = count_history
+            element_dict['company'] = get_name(element_dict['name'])
+            count_history += 1
+            history_bonds[element_dict['name']] = element_dict
 
-    count = 1
-    for element in list_values:
-        element.insert(0, count)
-        element.insert(2, get_name(element[1]))
-        element.insert(5, get_income(element[1]))
-        count += 1
+    for element_dict in history_bonds.values():
+        del portfolio_bonds[element_dict['name']]
 
-    count = 1
-    for element in history_bonds:
-        element.insert(0, count)
-        count += 1
-
-    assets.portfolio_bonds = [list_header, list_values]
+    assets.portfolio_bonds = [list_header, portfolio_bonds]
     assets.history_bonds = check_none(history_bonds, len(list_header))
-    return list_header, list_values
+    return list_header, portfolio_bonds
 
 
 def get_my_bonds():
     if len(assets.portfolio_bonds[0]) > 0:
-        return assets.portfolio_bonds
+        return handler_for_out(assets.portfolio_bonds)
     else:
         doc = Parsing.load_data(0)
         if doc is None:
             return None, None
-        return parsing_bonds_portfolio(doc)
+        return handler_for_out(parsing_bonds_portfolio(doc))
 
 
 def get_name(tiker):

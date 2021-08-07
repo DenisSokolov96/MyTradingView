@@ -12,12 +12,13 @@ class Assets:
             cls._portfolio_bonds = [[], []]
             cls._portfolio_pies = [[], []]
 
-            # secid = [name, lotsize, price]
+            # all real time
             cls._rus_stocks = {}
             cls._unrus_stocks = {}
             cls._bonds = {}
             cls._pies = {}
 
+            # sold
             cls._history_stocks = []
             cls._history_bonds = []
             cls.history_pies = []

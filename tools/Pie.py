@@ -1,6 +1,6 @@
 import Parsing
 from Assets import Assets
-from Binding import check_none
+from Binding import check_none, handler_for_out
 import api_mcx
 from tools.StructRep import dict_pies
 
@@ -25,8 +25,8 @@ def parsing_pies_portfolio(doc):
                     portfolio_pies[element[4]]['count'] += element[8]
                     portfolio_pies[element[4]]['invest'] += round(element[16], 2)
                 else:
-                    portfolio_pies[element[4]]['count'] += element[8]
-                    portfolio_pies[element[4]]['invest'] += round(element[16])
+                    portfolio_pies[element[4]]['sold_count'] += element[8]
+                    portfolio_pies[element[4]]['sold'] += round(element[16])
 
     history_pies = {}
     count_value = 1
@@ -42,6 +42,9 @@ def parsing_pies_portfolio(doc):
             element_dict['num'] = count_history
             count_history += 1
             history_pies[element_dict['name']] = element_dict
+
+    for element_dict in history_pies.values():
+        del portfolio_pies[element_dict['name']]
 
     assets.portfolio_pies = [list_header, portfolio_pies]
     assets.history_pies = check_none(history_pies, len(list_header))
@@ -64,16 +67,3 @@ def get_name(tiker):
     if tiker_info is not None:
         return tiker_info[0]
     return ""
-
-
-def handler_for_out(data):
-    list_header = data[0]
-    list_value = []
-
-    for dict in data[1].values():
-        temp = []
-        for val in dict.values():
-            temp.append(val)
-        list_value.append(temp)
-
-    return list_header, list_value

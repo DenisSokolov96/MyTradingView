@@ -1,6 +1,7 @@
 import Parsing
 from Assets import Assets
-from Binding import check_none
+from Binding import check_none, handler_for_out
+from tools.StructRep import dict_stocks
 import api_mcx
 
 assets = Assets()
@@ -8,12 +9,12 @@ assets = Assets()
 
 def get_my_portfolio():
     if len(assets.portfolio_stocks[0]) > 0:
-        return assets.portfolio_stocks
+        return handler_for_out(assets.portfolio_stocks)
     else:
         doc = Parsing.load_data(0)
         if doc is None:
             return None, None
-        return parsing_for_portfolio(doc)
+        return handler_for_out(parsing_for_portfolio(doc))
 
 
 def parsing_for_portfolio(doc):
@@ -22,64 +23,72 @@ def parsing_for_portfolio(doc):
     if len(assets.unrus_stocks) == 0:
         api_mcx.Handler.get_stocks_15m_ago('unru')
 
-    list_values = []
-    list_header = ['###', 'Компания', 'Бумага', 'Тикер', 'Цена акции сейчас р.', 'Изменение инвестиций р.', 'Количество',
-                   'Инвестировано р.', 'Продано(шт.)', 'Цена продажи р.', 'Цена за одну р.', 'Прибыль р.']
+    list_header = ['###', 'Компания', 'Бумага', 'Тикер', 'Цена акции сейчас р.', 'Изменение инвестиций р.',
+                   'Количество', 'Инвестировано р.', 'Продано(шт.)', 'Цена продажи р.', 'Цена за одну р.',
+                   'Прибыль р.', 'Страна']
     portfolio_stocks = {}
-
     for element in reversed(doc.values):
         if element[5] == 'Акция' or element[5] == 'Депозитарная расписка':
-            list_el = portfolio_stocks.get(element[4])
-            if list_el is None:
-                portfolio_stocks[element[4]] = [element[5], element[4], element[8], round(element[16], 2), 0, 0, 0, 0]
+            if portfolio_stocks.get(element[4]) is None:
+                portfolio_stocks[element[4]] = dict_stocks.copy()
+                portfolio_stocks[element[4]]['paper'] = element[5]
+                portfolio_stocks[element[4]]['tiker'] = element[4]
+                portfolio_stocks[element[4]]['count'] = element[8]
+                portfolio_stocks[element[4]]['invest'] = round(element[16], 2)
+                if element[5] == 'Депозитарная расписка':
+                    portfolio_stocks[element[4]]['country'] = 'Другая страна'
+                if element[5] == 'Акция':
+                    if portfolio_stocks[element[4]]['tiker'].find('-RM') != -1:
+                        portfolio_stocks[element[4]]['country'] = 'США'
+                    else:
+                        portfolio_stocks[element[4]]['country'] = 'Россия'
             else:
                 if element[7] == 'Покупка':
-                    portfolio_stocks[element[4]] = [element[5], element[4], element[8] + list_el[2],
-                                             round(element[16] + list_el[3], 2), list_el[4], list_el[5], 0, 0]
+                    portfolio_stocks[element[4]]['count'] += element[8]
+                    portfolio_stocks[element[4]]['invest'] = round(portfolio_stocks[element[4]]['invest'] +
+                                                                   element[16], 2)
                 else:
-                    portfolio_stocks[element[4]] = [element[5], element[4], list_el[2],
-                                             list_el[3], list_el[4] + element[8], round(list_el[5] + element[16], 2),
-                                                    0, 0]
+                    portfolio_stocks[element[4]]['sold_count'] += element[8]
+                    portfolio_stocks[element[4]]['sold'] = round(portfolio_stocks[element[4]]['sold'] + element[16], 2)
 
-    history_stocks = []
-    for element in portfolio_stocks.values():
-        if element[2] > element[4]:
-            if element[4] > 0:
-                medium = round(element[3] / element[2], 2)
-                element[2] -= element[4]
-                element[3] = medium * element[2]
-                element[6] = round(element[5]/element[4], 2)
-                res = round(element[5] - element[4] * medium)
+    history_stocks = {}
+    count_value = 1
+    count_history = 1
+
+    for element_dict in portfolio_stocks.values():
+        element_dict['company'] = get_name(element_dict['tiker'])
+        element_dict['price_now'] = get_price(element_dict['tiker'])
+        if element_dict['count'] > element_dict['sold_count']:
+            if element_dict['sold_count'] > 0:
+                medium = round(element_dict['invest'] / element_dict['count'], 2)
+                element_dict['count'] -= element_dict['sold_count']
+                element_dict['invest'] = medium * element_dict['count']
+                element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+                res = round(element_dict['sold'] - element_dict['sold_count'] * medium)
                 res = round(res - res * 0.13, 2)
-                element[7] = res
-            list_values.append(element)
+                element_dict['income'] = res
+
+            element_dict['change_invest'] = get_dif(element_dict['price_now'],
+                                                    element_dict['count'], element_dict['invest'])
+            element_dict['num'] = count_value
+            count_value += 1
         else:
-            element[6] = round(element[5] / element[4], 2)
-            res = round(element[5] - element[3], 2)
+            element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+            res = round(element_dict['sold'] - element_dict['invest'], 2)
             res = round(res - res * 0.13, 2)
-            element[7] = res
-            history_stocks.append(element)
+            element_dict['income'] = res
+            element_dict['change_invest'] = get_dif(element_dict['price_now'],
+                                                    element_dict['count'], element_dict['invest'])
+            element_dict['num'] = count_history
+            count_history += 1
+            history_stocks[element_dict['tiker']] = element_dict
 
-    list_values.sort()
-    count = 1
-    for element in list_values:
-        element.insert(0, count)
-        element.insert(1, get_name(element[2]))
-        element.insert(4, get_price(element[3]))
-        element.insert(5, get_dif(element[4], element[5], element[6]))
-        count += 1
+    for element_dict in history_stocks.values():
+        del portfolio_stocks[element_dict['tiker']]
 
-    count = 1
-    for element in history_stocks:
-        element.insert(0, count)
-        element.insert(1, get_name(element[2]))
-        element.insert(4, get_price(element[3]))
-        element.insert(5, get_dif(element[4], element[5], element[6]))
-
-        count += 1
-    assets.portfolio_stocks = [list_header, list_values]
+    assets.portfolio_stocks = [list_header, portfolio_stocks]
     assets.history_stocks = check_none(history_stocks, len(list_header))
-    return list_header, list_values
+    return list_header, portfolio_stocks
 
 
 def get_name(tiker):

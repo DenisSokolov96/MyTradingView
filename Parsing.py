@@ -106,9 +106,3 @@ def pars_doc_deals(doc):
         list_values.append(list_data)
 
     return list_header, list_values
-
-
-def my_stock_info(doc):
-    write_text = ""
-
-    return write_text
