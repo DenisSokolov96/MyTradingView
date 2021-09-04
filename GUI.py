@@ -1,6 +1,7 @@
 import tools
 import api_mcx
 from Parsing import *
+from XMLRefact import *
 import PySimpleGUI as sg
 
 sizeX = 1150
@@ -10,9 +11,10 @@ sizeY = 600
 # основное окно
 def main_wind():
     sg.theme('Light Green')
-    menu_def = [['&Меню', ['&Обновить новости']],
-                ['&Информация на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации', '&Фонды']],
-                ['&Мой портфель', ['&Просмотреть портфель', '&Мои сделки', '&Операции по счету', '&График ввода ДС']]]
+    menu_def = [['&Информация', ['&Обновить новости']],
+                ['&Стоимость активов на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации', '&Фонды']],
+                ['&Мой портфель', ['&Просмотреть портфель', '&Мои сделки', '&Операции по счету', '&График ввода ДС']],
+                ['&Настройки', ['&Автозагрузка файлов']]]
     news_list = api_mcx.Handler.get_list_news()
     layout = [[sg.Menu(menu_def, tearoff=False)],
               [sg.Table(values=news_list, headings=['Дата', 'Новость'], def_col_width=12, max_col_width=60,
@@ -42,7 +44,7 @@ def main_wind():
 def func_menu(event, window, values, news_list):
     if event == '-TABLE_NEWS-':
         id_news = news_list[values['-TABLE_NEWS-'][0]][2]
-        window['out'].update(api_mcx.Handler.get_newtext_id(id_news))
+        window['out'].update(redact(api_mcx.Handler.get_newtext_id(id_news)))
     ################################################
     if event == "Российские акции":
         list_data, list_columns, info = api_mcx.Handler.get_stocks_15m_ago('ru')
@@ -86,6 +88,9 @@ def func_menu(event, window, values, news_list):
         create_graph()
     if event == "Просмотреть портфель":
         wind_portfolio()
+    ################################################
+    if event == "Автозагрузка файлов":
+        wind_auto_load()
 
 
 # вывод данных с биржи
@@ -165,7 +170,7 @@ def wind_portfolio():
 
     menu_def = [['&Общие диаграммы', ['&Круговая диаграмма', '&Столбчатая диаграмма',
                                       '&Состав портфеля по категориям']],
-                ['&Акции', ['&Виды акций']],
+                ['&Акции', ['&Виды акций', '&Акции в портфеле']],
                 ['&Облигации', ['&Виды облигаций']],
                 ['&Фонды', ['&Состав фондов']],
                 ['&Информация', ['&Проданные активы']]]
@@ -220,6 +225,8 @@ def wind_portfolio():
             get_all_pies()
         if event == 'Виды облигаций':
             get_all_bonds()
+        if event == 'Акции в портфеле':
+            get_name_stocks()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()
@@ -272,6 +279,27 @@ def wind_history():
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()
+
+
+def wind_auto_load():
+    sg.theme('Light Green')
+    layout = [
+        [sg.Button("Сделки"), sg.Input(key='-Deal-', size=(45, 1), justification='center')],
+        [sg.Button("Зач./Спис."), sg.Input(key='-Transaction-', size=(45, 1), justification='center')],
+        [sg.Button("Сохранить")]
+    ]
+    window = sg.Window('Автозагрузка файлов', layout, size=(400, 100))
+    while True:
+        event, values = window.read()
+        if event == 'Сделки':
+            window['-Deal-'].update(set_path('сделкам'))
+        if event == 'Зач./Спис.':
+            window['-Transaction-'].update(set_path('эачислению/списанию'))
+        if event == 'Сохранить':
+            write_to_xml(values['-Deal-'], values['-Transaction-'])
+        if event in (sg.WIN_CLOSED, 'Quit'):
+            break
+    window.close()
 
 
 def wind_error():

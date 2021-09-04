@@ -1,3 +1,6 @@
+import base64
+import webbrowser
+
 from api_mcx.API_response import *
 from datetime import datetime
 from bs4 import BeautifulSoup

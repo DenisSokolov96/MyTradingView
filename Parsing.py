@@ -23,6 +23,7 @@ def write_offs(doc):
     my_money = 0
     dividents = 0
     tax = 0
+    coupon = 0
     count = 0
 
     while count < len(doc['Операция']):
@@ -36,17 +37,21 @@ def write_offs(doc):
             dividents += doc['Сумма'][count]
         if doc['Операция'][count] == 'Списание налогов':
             tax += doc['Сумма'][count]
+        if doc['Операция'][count] == 'Зачисление купона':
+            coupon += doc['Сумма'][count]
         count += 1
 
     comission = round(comission, 2)
     my_money = round(my_money, 2)
     dividents = round(dividents, 2)
     tax = round(tax, 2)
+    coupon = round(coupon, 2)
     write_text = 'Комисия составила:\t' + str(comission) + 'р.\n'
     write_text += 'Зачисленная сумма:\t' + str(my_money) + 'р.\n'
     write_text += 'Зачисленно дивидендов:\t' + str(dividents) + 'р.\n'
     write_text += 'Оплачено налога:\t\t' + str(tax) + 'р.\n'
-    write_text += 'Итог:\t\t\t' + str(round(my_money - comission - tax + dividents)) + 'р.\n'
+    write_text += 'Доход с облигаций:\t' + str(coupon) + 'р.\n'
+    write_text += 'Итог:\t\t\t' + str(round(my_money - comission - tax + dividents + coupon)) + 'р.\n'
 
     list_header = []
     list_values = []

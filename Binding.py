@@ -167,6 +167,15 @@ def get_all_bonds():
     write_diagramm(labels, vals_money, 'Виды облигаций')
 
 
+def get_name_stocks():
+    labels = []
+    vals_money = []
+    for element in assets.portfolio_stocks[1].values():
+        labels.append(element['company'])
+        vals_money.append(element['invest'])
+    write_diagramm(labels, vals_money, 'Акции в портфеле')
+
+
 def write_diagramm(labels, vals_money, text_header):
     for i in range(0, len(labels)):
         labels[i] += '\n(' + str(vals_money[i]) + 'р.)'
@@ -199,3 +208,9 @@ def to_list(data):
             temp.append(el)
         new_list.append(temp)
     return new_list
+
+
+def redact(text):
+    page = text.replace("\n\n", "\n")
+    return page
+

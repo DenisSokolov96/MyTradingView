@@ -23,10 +23,10 @@ def parsing_pies_portfolio(doc):
             else:
                 if element[7] == 'Покупка':
                     portfolio_pies[element[4]]['count'] += element[8]
-                    portfolio_pies[element[4]]['invest'] += round(element[16], 2)
+                    portfolio_pies[element[4]]['invest'] = round(portfolio_pies[element[4]]['invest'] + element[16], 2)
                 else:
                     portfolio_pies[element[4]]['sold_count'] += element[8]
-                    portfolio_pies[element[4]]['sold'] += round(element[16])
+                    portfolio_pies[element[4]]['sold'] += round(element[16], 2)
 
     history_pies = {}
     count_value = 1
