@@ -23,9 +23,9 @@ def parsing_for_portfolio(doc):
     if len(assets.unrus_stocks) == 0:
         api_mcx.Handler.get_stocks_15m_ago('unru')
 
-    list_header = ['###', 'Компания', 'Бумага', 'Тикер', 'Цена акции сейчас р.', 'Изменение инвестиций р.',
-                   'Количество', 'Инвестировано р.', 'Продано(шт.)', 'Цена продажи р.', 'Цена за одну р.',
-                   'Прибыль р.', 'Страна']
+    list_header = ['###', 'Компания', 'Бумага', 'Тикер', 'Цена сейчас р.', 'Ср. цена',
+                   'Изм. инвест. р.', 'Кол - во', 'Инвестировано р.', 'Продано(шт.)', 'Цена продажи р.',
+                   'Цена за одну р.', 'Прибыль р.', 'Страна']
     portfolio_stocks = {}
     for element in reversed(doc.values):
         if element[5] == 'Акция' or element[5] == 'Депозитарная расписка':
@@ -68,6 +68,7 @@ def parsing_for_portfolio(doc):
                 res = round(res - res * 0.13, 2)
                 element_dict['income'] = res
 
+            element_dict['middle_price'] = round(element_dict['invest'] / element_dict['count'], 3)
             element_dict['change_invest'] = get_dif(element_dict['price_now'],
                                                     element_dict['count'], element_dict['invest'])
             element_dict['num'] = count_value
@@ -77,6 +78,7 @@ def parsing_for_portfolio(doc):
             res = round(element_dict['sold'] - element_dict['invest'], 2)
             res = round(res - res * 0.13, 2)
             element_dict['income'] = res
+            element_dict['middle_price'] = res
             element_dict['change_invest'] = get_dif(element_dict['price_now'],
                                                     element_dict['count'], element_dict['invest'])
             element_dict['num'] = count_history

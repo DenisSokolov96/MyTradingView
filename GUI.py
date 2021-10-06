@@ -95,7 +95,9 @@ def func_menu(event, window, values, news_list):
 
 # вывод данных с биржи
 def wind_table(list_data, list_columns, info):
-    layout = [[sg.Table(values=list_data, headings=list_columns, def_col_width=20, max_col_width=50,
+    layout = [
+              [sg.Button('Поиск'), sg.Combo(values=[], enable_events=True, key='-search-', size=(30, 1))],
+              [sg.Table(values=list_data, headings=list_columns, def_col_width=20, max_col_width=50,
                         background_color='lightblue',
                         text_color='Black',
                         auto_size_columns=True,
@@ -110,6 +112,9 @@ def wind_table(list_data, list_columns, info):
     new_win = sg.Window(info, layout)
     while True:
         event, values = new_win.read()
+        if event == "Enter":
+            list_dates = search(list_data, values['-search-'])
+            new_win['-search-'].update(values=list_dates)
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()

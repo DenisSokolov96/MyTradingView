@@ -3,6 +3,7 @@ import pandas as pd
 import PySimpleGUI as sg
 import Parsing
 
+from Assets import Assets
 from datetime import datetime
 from matplotlib import pyplot as plt
 from Parsing import *
@@ -214,3 +215,13 @@ def redact(text):
     page = text.replace("\n\n", "\n")
     return page
 
+
+def search(list_data, str_search):
+    papers = []
+    for el in list_data:
+        if el[0].find(str_search) > -1 or (len(el) > 2 and el[1].find(str_search) > -1):
+            output = ""
+            for m_i in el:
+                output = output + " " + str(m_i)
+            papers.append(output)
+    return papers
