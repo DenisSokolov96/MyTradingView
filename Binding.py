@@ -216,12 +216,38 @@ def redact(text):
     return page
 
 
-def search(list_data, str_search):
-    papers = []
+def search(list_data, str_search, info):
+    if info.find('акции') > -1:
+        return for_stocks(list_data, str_search)
+    if info.find('Облигации') > -1:
+        return for_bonds(list_data, str_search)
+    if info.find('Фонды') > -1:
+        return for_pies(list_data, str_search)
+    return ""
+
+
+def for_stocks(list_data, str_search):
+    list_stocks = []
     for el in list_data:
-        if el[0].find(str_search) > -1 or (len(el) > 2 and el[1].find(str_search) > -1):
-            output = ""
-            for m_i in el:
-                output = output + " " + str(m_i)
-            papers.append(output)
-    return papers
+        if el[0].find(str_search) > -1 or el[1].find(str_search) > -1:
+            s = el[0] + " " + el[1] + " " + str(el[2]) + "р. " + str(el[3]) + "шт. в лоте"
+            list_stocks.append(s)
+    return list_stocks
+
+
+def for_bonds(list_data, str_search):
+    list_bonds = []
+    for el in list_data:
+        if el[0].find(str_search) > -1 or el[1].find(str_search) > -1:
+            s = el[1] + " " + str(el[2]) + "%цена " + str(el[3]) + "%доход"
+            list_bonds.append(s)
+    return list_bonds
+
+
+def for_pies(list_data, str_search):
+    list_pies = []
+    for el in list_data:
+        if el[0].find(str_search) > -1:
+            s = el[0] + " " + str(el[1]) + "р. пай"
+            list_pies.append(s)
+    return list_pies
