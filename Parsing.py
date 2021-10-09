@@ -2,6 +2,8 @@ from Assets import Assets
 from datetime import datetime
 from Binding import *
 
+assets = Assets()
+
 
 def load_data(parameter):
     if parameter == 1:
@@ -46,11 +48,11 @@ def write_offs(doc):
     dividents = round(dividents, 2)
     tax = round(tax, 2)
     coupon = round(coupon, 2)
-    write_text = 'Комисия составила:\t' + str(comission) + 'р.\n'
-    write_text += 'Зачисленная сумма:\t' + str(my_money) + 'р.\n'
+    write_text = 'Зачисленная сумма:\t' + str(my_money) + 'р.\t'
     write_text += 'Зачисленно дивидендов:\t' + str(dividents) + 'р.\n'
-    write_text += 'Оплачено налога:\t\t' + str(tax) + 'р.\n'
+    write_text += 'Комисия составила:\t' + str(comission) + 'р.\t'
     write_text += 'Доход с облигаций:\t' + str(coupon) + 'р.\n'
+    write_text += 'Оплачено налога:\t\t' + str(tax) + 'р.\t'
     write_text += 'Итог:\t\t\t' + str(round(my_money - comission - tax + dividents + coupon)) + 'р.\n'
 
     list_header = []

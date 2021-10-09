@@ -1,3 +1,5 @@
+import math
+
 import tools
 import api_mcx
 from Parsing import *
@@ -95,23 +97,36 @@ def func_menu(event, window, values, news_list):
 
 # вывод данных с биржи
 def wind_table(list_data, list_columns, info):
+    page_count = math.ceil(len(list_data) / 12)
+    index_page = 1
     layout = [
-              [sg.Combo(values=[], enable_events=True, key='-search-', size=(35, 1))],
-              [sg.Table(values=list_data, headings=list_columns, def_col_width=20, max_col_width=50,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=20,
-                        alternating_row_color='white',
-                        key='-TABLE_RU-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        row_height=30,
-                        tooltip=info)]]
+        [sg.Combo(values=[], enable_events=True, key='-search-', size=(35, 1)),
+         sg.Button(button_text='Вперед', key='-forward-'), sg.Button(button_text='Назад', key='-back-'),
+         sg.Input(default_text="1 из " + str(page_count), key='-out-',
+                  readonly=True, text_color='Black', size=(10, 1), justification='center')],
+        [sg.Table(values=list_data[:12], headings=list_columns, def_col_width=20, max_col_width=50,
+                  background_color='lightblue',
+                  text_color='Black',
+                  auto_size_columns=True,
+                  justification='centre',
+                  num_rows=12,
+                  alternating_row_color='white',
+                  key='-TABLE_RU-',
+                  selected_row_colors=('Black', 'lightgray'),
+                  row_height=30,
+                  tooltip=info)]]
     sg.theme('BlueMono')
     new_win = sg.Window(info, layout, return_keyboard_events=True)
     while True:
         event, values = new_win.read()
+        if event == '-back-' and index_page < page_count:
+            index_page += 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_RU-'].update(list_data[(index_page - 1) * 12:index_page * 12])
+        if event == '-forward-' and index_page > 1:
+            index_page -= 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_RU-'].update(list_data[(index_page - 1) * 12:index_page * 12])
         if event == '\r':
             list_dates = search(list_data, values['-search-'], info)
             new_win['-search-'].update(values=list_dates)
@@ -124,22 +139,35 @@ def wind_table(list_data, list_columns, info):
 # Операции по счету
 def wind_my_money(doc):
     list_header, list_values, write_text = write_offs(doc)
-    layout = [[sg.Text(size=(40, 5), key='out', text=write_text)],
-              [sg.Table(values=list_values, headings=list_header, def_col_width=20, max_col_width=40,
+    page_count = math.ceil(len(list_values) / 15)
+    index_page = 1
+    layout = [[sg.Text(size=(70, 3), key='out', text=write_text)],
+              [sg.Table(values=list_values[:15], headings=list_header, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
                         auto_size_columns=True,
                         justification='centre',
-                        num_rows=20,
+                        num_rows=15,
                         alternating_row_color='white',
                         key='-TABLE_MONEY-',
                         selected_row_colors=('Black', 'lightgray'),
-                        row_height=30)]
+                        row_height=30)],
+              [sg.Button(button_text='Вперед', key='-forward-'), sg.Button(button_text='Назад', key='-back-'),
+               sg.Input(default_text="1 из " + str(page_count), key='-out-',
+                        readonly=True, text_color='Black', size=(10, 1), justification='center')]
               ]
     sg.theme('BlueMono')
     new_win = sg.Window('Операции по счету', layout)
     while True:
         event, values = new_win.read()
+        if event == '-back-' and index_page < page_count:
+            index_page += 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_MONEY-'].update(list_values[(index_page - 1) * 15:index_page * 15])
+        if event == '-forward-' and index_page > 1:
+            index_page -= 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_MONEY-'].update(list_values[(index_page - 1) * 15:index_page * 15])
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()
@@ -148,21 +176,35 @@ def wind_my_money(doc):
 # Мои сделки
 def wind_my_deals(doc):
     list_header, list_values = pars_doc_deals(doc)
-    layout = [[sg.Table(values=list_values, headings=list_header, def_col_width=20, max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=20,
-                        alternating_row_color='white',
-                        key='-TABLE_DEALS-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        row_height=30)]
-              ]
+    page_count = math.ceil(len(list_values) / 15)
+    index_page = 1
+    layout = [
+        [sg.Table(values=list_values[:15], headings=list_header, def_col_width=15,
+                  background_color='lightblue',
+                  text_color='Black',
+                  auto_size_columns=True,
+                  justification='centre',
+                  num_rows=15,
+                  alternating_row_color='white',
+                  key='-TABLE_DEALS-',
+                  selected_row_colors=('Black', 'lightgray'),
+                  row_height=30)],
+        [sg.Button(button_text='Вперед', key='-forward-'), sg.Button(button_text='Назад', key='-back-'),
+         sg.Input(default_text="1 из " + str(page_count), key='-out-',
+                  readonly=True, text_color='Black', size=(10, 1), justification='center')]
+    ]
     sg.theme('BlueMono')
     new_win = sg.Window('Мои сделки', layout)
     while True:
         event, values = new_win.read()
+        if event == '-back-' and index_page < page_count:
+            index_page += 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_DEALS-'].update(list_values[(index_page - 1) * 15:index_page * 15])
+        if event == '-forward-' and index_page > 1:
+            index_page -= 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_DEALS-'].update(list_values[(index_page - 1) * 15:index_page * 15])
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()
@@ -202,7 +244,7 @@ def wind_portfolio():
                         key='-TABLE_BONDS-',
                         selected_row_colors=('Black', 'lightgray'),
                         row_height=30),
-              sg.Table(values=list_values_pies, headings=list_header_pies, def_col_width=20, max_col_width=40,
+               sg.Table(values=list_values_pies, headings=list_header_pies, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
                         auto_size_columns=True,
@@ -266,7 +308,7 @@ def wind_history():
                         key='-TABLE_BONDS-',
                         selected_row_colors=('Black', 'lightgray'),
                         row_height=30),
-              sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
+               sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
                         max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -287,6 +329,7 @@ def wind_history():
     new_win.close()
 
 
+# Окно с настройками
 def wind_auto_load():
     sg.theme('Light Green')
     layout = [
@@ -308,6 +351,7 @@ def wind_auto_load():
     window.close()
 
 
+# Вывод окна при отсутствии интернета
 def wind_error():
     sg.theme('Light Green')
     menu_def = [['&Меню', ['&Мои сделки', '&Операции по счету']]]
