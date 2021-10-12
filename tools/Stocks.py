@@ -31,17 +31,18 @@ def parsing_for_portfolio(doc):
         if element[5] == 'Акция' or element[5] == 'Депозитарная расписка':
             if portfolio_stocks.get(element[4]) is None:
                 portfolio_stocks[element[4]] = dict_stocks.copy()
-                portfolio_stocks[element[4]]['paper'] = element[5]
                 portfolio_stocks[element[4]]['tiker'] = element[4]
                 portfolio_stocks[element[4]]['count'] = element[8]
                 portfolio_stocks[element[4]]['invest'] = round(element[16], 2)
                 if element[5] == 'Депозитарная расписка':
-                    portfolio_stocks[element[4]]['country'] = 'Другая страна'
+                    portfolio_stocks[element[4]]['paper'] = 'Деп. рас.'
+                    portfolio_stocks[element[4]]['country'] = 'Др. стр.'
                 if element[5] == 'Акция':
+                    portfolio_stocks[element[4]]['paper'] = 'Акция'
                     if portfolio_stocks[element[4]]['tiker'].find('-RM') != -1:
                         portfolio_stocks[element[4]]['country'] = 'США'
                     else:
-                        portfolio_stocks[element[4]]['country'] = 'Россия'
+                        portfolio_stocks[element[4]]['country'] = 'Рос.'
             else:
                 if element[7] == 'Покупка':
                     portfolio_stocks[element[4]]['count'] += element[8]

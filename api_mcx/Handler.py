@@ -36,12 +36,10 @@ def get_stocks_15m_ago(name_country):
     info_stocks = None
     if name_country == 'ru':
         tiker_price = get_rus_stock()
-        if bool(assets.rus_stocks) is False:
-            info_stocks = get_info_rus_stock()
+        info_stocks = get_info_rus_stock()
     if name_country == 'unru':
         tiker_price = get_unrus_stock()
-        if bool(assets.unrus_stocks) is False:
-            info_stocks = get_info_unrus_stock()
+        info_stocks = get_info_unrus_stock()
 
     # secid = [name, lotsize, price]
     dict = {}
@@ -79,8 +77,7 @@ def get_bonds():
     info_bonds = None
     bonds_price = get_bonds_api()
 
-    if bool(assets.bonds) is False:
-        info_bonds = get_name_bonds_api()
+    info_bonds = get_name_bonds_api()
 
     # secid = [name]
     dict = {}

@@ -15,7 +15,8 @@ def main_wind():
     sg.theme('Light Green')
     menu_def = [['&Информация', ['&Обновить новости']],
                 ['&Стоимость активов на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации', '&Фонды']],
-                ['&Мой портфель', ['&Просмотреть портфель', '&Мои сделки', '&Операции по счету', '&График ввода ДС']],
+                ['&Мой портфель', ['&Общий отчет инвестиций', '&Просмотреть портфель', '&Мои сделки',
+                                   '&Операции по счету', '&График ввода ДС']],
                 ['&Настройки', ['&Автозагрузка файлов']]]
     news_list = api_mcx.Handler.get_list_news()
     layout = [[sg.Menu(menu_def, tearoff=False)],
@@ -35,6 +36,12 @@ def main_wind():
 
     while True:
         event, values = window.read()
+
+        # update
+        # api_mcx.Handler.get_stocks_15m_ago('ru')
+        # api_mcx.Handler.get_stocks_15m_ago('unru')
+        # api_mcx.Handler.get_bonds()
+        # api_mcx.Handler.get_pies()
 
         func_menu(event, window, values, news_list)
 
@@ -90,6 +97,8 @@ def func_menu(event, window, values, news_list):
         create_graph()
     if event == "Просмотреть портфель":
         wind_portfolio()
+    if event == "Общий отчет инвестиций":
+        wind_report_invest()
     ################################################
     if event == "Автозагрузка файлов":
         wind_auto_load()
@@ -216,6 +225,19 @@ def wind_portfolio():
     list_header_bonds, list_values_bonds = tools.Bonds.get_my_bonds()
     list_header_pies, list_values_pies = tools.Pie.get_my_pies()
 
+    list_colors_stocks = []
+    for i in range(0, len(list_values_stocks)):
+        if list_values_stocks[i][6] > 0:
+            list_colors_stocks.append([i, "green", "lightblue" if i % 2 else "white"])
+    list_colors_bonds = []
+    for i in range(0, len(list_values_bonds)):
+        if list_values_bonds[i][5] > 0:
+            list_colors_bonds.append([i, "green", "lightblue" if i % 2 else "white"])
+    list_colors_pies = []
+    for i in range(0, len(list_values_pies)):
+        if list_values_pies[i][4] > 0:
+            list_colors_pies.append([i, "green", "lightblue" if i % 2 else "white"])
+
     menu_def = [['&Общие диаграммы', ['&Круговая диаграмма', '&Столбчатая диаграмма',
                                       '&Состав портфеля по категориям']],
                 ['&Акции', ['&Виды акций', '&Акции в портфеле']],
@@ -225,34 +247,19 @@ def wind_portfolio():
 
     layout = [[sg.Menu(menu_def, tearoff=False)],
               [sg.Table(values=list_values_stocks, headings=list_header_stocks, def_col_width=20, max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=11,
-                        alternating_row_color='white',
-                        key='-TABLE_STOCKS-',
-                        selected_row_colors=('Black', 'lightgray'),
+                        background_color='lightblue', text_color='Black', row_colors=list_colors_stocks,
+                        auto_size_columns=True, justification='centre', num_rows=7, alternating_row_color='white',
+                        key='-TABLE_STOCKS-', selected_row_colors=('Black', 'lightgray'),
                         row_height=30)],
               [sg.Table(values=list_values_bonds, headings=list_header_bonds, def_col_width=20, max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=7,
-                        alternating_row_color='white',
-                        key='-TABLE_BONDS-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        row_height=30),
-               sg.Table(values=list_values_pies, headings=list_header_pies, def_col_width=20, max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=7,
-                        alternating_row_color='white',
-                        key='-TABLE_PIE-',
-                        selected_row_colors=('Black', 'lightgray'),
+                        background_color='lightblue', text_color='Black', row_colors=list_colors_bonds,
+                        auto_size_columns=True, justification='centre', num_rows=5, alternating_row_color='white',
+                        key='-TABLE_BONDS-', selected_row_colors=('Black', 'lightgray'),
+                        row_height=30)],
+              [sg.Table(values=list_values_pies, headings=list_header_pies, def_col_width=20, max_col_width=40,
+                        background_color='lightblue', text_color='Black', row_colors=list_colors_pies,
+                        auto_size_columns=True, justification='centre', num_rows=5, alternating_row_color='white',
+                        key='-TABLE_PIE-', selected_row_colors=('Black', 'lightgray'),
                         row_height=30)]
               ]
     sg.theme('BlueMono')
@@ -307,8 +314,8 @@ def wind_history():
                         alternating_row_color='white',
                         key='-TABLE_BONDS-',
                         selected_row_colors=('Black', 'lightgray'),
-                        row_height=30),
-               sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
+                        row_height=30)],
+               [sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
                         max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -322,6 +329,30 @@ def wind_history():
               ]
     sg.theme('BlueMono')
     new_win = sg.Window('Проданные активы', layout)
+    while True:
+        event, values = new_win.read()
+        if event in (sg.WIN_CLOSED, 'Quit'):
+            break
+    new_win.close()
+
+
+# Окно вывода общей таблицы инвестиций
+def wind_report_invest():
+    list_headers, list_data, list_colors = report_invest()
+    layout = [[sg.Table(values=list_data, headings=list_headers, def_col_width=20, max_col_width=40,
+                        background_color='lightblue',
+                        text_color='Black',
+                        row_colors=list_colors,
+                        auto_size_columns=True,
+                        justification='centre',
+                        num_rows=5,
+                        alternating_row_color='white',
+                        key='-TABLE_INVEST-',
+                        selected_row_colors=('Black', 'lightgray'),
+                        row_height=30)]
+              ]
+    sg.theme('BlueMono')
+    new_win = sg.Window('Общий отчет инвестиций', layout)
     while True:
         event, values = new_win.read()
         if event in (sg.WIN_CLOSED, 'Quit'):

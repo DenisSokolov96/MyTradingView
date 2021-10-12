@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import PySimpleGUI as sg
 import Parsing
+import tools
 
 from Assets import Assets
 from datetime import datetime
@@ -137,7 +138,7 @@ def get_rus_unrus_stocks():
 def get_stocks_all():
     vals_money = [0, 0, 0]
     for element in assets.portfolio_stocks[1].values():
-        if element['paper'] == 'Депозитарная расписка':
+        if element['paper'] == 'Деп. рас.':
             vals_money[2] += element['invest']
         elif element['tiker'].find('-RM') != -1:
             vals_money[0] += element['invest']
@@ -251,3 +252,68 @@ def for_pies(list_data, str_search):
             s = el[0] + " " + str(el[1]) + "р. пай"
             list_pies.append(s)
     return list_pies
+
+
+def report_invest():
+    list_values_stocks = tools.Stocks.get_my_portfolio()[1:]
+    list_values_bonds = tools.Bonds.get_my_bonds()[1:]
+    list_values_pies = tools.Pie.get_my_pies()[1:]
+
+    list_headers = ['Ценная бумага', 'Инвестированно', 'Оценка активов сейчас', 'Изменение в р.', 'Изменение в %']
+    list_data = []
+    # Акции------------------------------------------------------------------------
+    invest = 0
+    price_now = 0
+    invest_us = 0
+    price_now_us = 0
+    for i in range(0, len(list_values_stocks[0])):
+        if list_values_stocks[0][i][13] != "США":
+            invest += list_values_stocks[0][i][8]
+            price_now += list_values_stocks[0][i][8] + list_values_stocks[0][i][6]
+        else:
+            invest_us += list_values_stocks[0][i][8]
+            price_now_us += list_values_stocks[0][i][8] + list_values_stocks[0][i][6]
+    invest = round(invest, 2)
+    price_now = round(price_now, 2)
+    list_data.append(['Российские акции', invest, price_now,
+                      round(price_now - invest, 2), str(round(price_now * 100 / invest - 100, 2)) + " %"])
+    invest_us = round(invest_us, 2)
+    price_now_us = round(price_now_us, 2)
+    list_data.append(['Зарубежные акции', invest_us, price_now_us,
+                      round(price_now_us - invest_us, 2), str(round(price_now_us * 100 / invest_us - 100, 2)) + " %"])
+    # Облигации------------------------------------------------------------------------
+    invest = 0
+    price_now = 0
+    for i in range(0, len(list_values_bonds[0])):
+        invest += list_values_bonds[0][i][6]
+        price_now += list_values_bonds[0][i][6] + list_values_bonds[0][i][5]
+    invest = round(invest, 2)
+    price_now = round(price_now, 2)
+    list_data.append(['Облигации', invest, price_now, round(price_now - invest, 2),
+                      str(round(price_now * 100 / invest - 100, 2)) + " %"])
+    # ETF фонды-------------------------------------------------------------------------
+    invest = 0
+    price_now = 0
+    for i in range(0, len(list_values_pies[0])):
+        invest += list_values_pies[0][i][5]
+        price_now += list_values_pies[0][i][5] + list_values_pies[0][i][4]
+    invest = round(invest, 2)
+    price_now = round(price_now, 2)
+    list_data.append(['ETF фонды', invest, price_now, round(price_now - invest, 2),
+                      str(round(price_now * 100 / invest - 100, 2)) + " %"])
+
+    invest = 0
+    price_now = 0
+    for i in range(0, len(list_data)):
+        invest += list_data[i][1]
+        price_now += list_data[i][2]
+
+    list_data.append(['Итог', round(invest, 2), round(price_now, 2), round(price_now - invest, 2),
+                      str(round(price_now * 100 / invest - 100, 2)) + " %"])
+
+    list_colors = []
+    for i in range(0, len(list_data)):
+        if list_data[i][3] > 0:
+            list_colors.append([i, "green", "lightblue" if i % 2 else "white"])
+
+    return list_headers, list_data, list_colors

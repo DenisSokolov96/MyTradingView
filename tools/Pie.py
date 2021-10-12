@@ -10,8 +10,8 @@ assets = Assets()
 def parsing_pies_portfolio(doc):
     if len(assets.pies) == 0:
         api_mcx.Handler.get_pies()
-    list_header = ['###', 'Наименование', 'Количество', 'Инвестировано',
-                   'Продано(шт.)', 'Продажа(р.)', '1 Пай(р.)']
+    list_header = ['###', 'Наименование', 'Цена сейчас р.', 'Ср. цена', 'Изм. инвест. р.,', 'Инвестировано',
+                   'Количество', 'Продано(шт.)', 'Продажа(р.)', '1 Пай(р.)']
     portfolio_pies = {}
     for element in reversed(doc.values):
         if element[5] == 'Пай':
@@ -32,14 +32,22 @@ def parsing_pies_portfolio(doc):
     count_value = 1
     count_history = 1
     for element_dict in portfolio_pies.values():
+        element_dict['price_now'] = get_price(element_dict['name'])
         if element_dict['count'] > element_dict['sold_count']:
             if element_dict['sold_count'] > 0:
                 element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
+
+            element_dict['middle_price'] = round(element_dict['invest'] / element_dict['count'], 3)
+            element_dict['change_invest'] = get_dif(element_dict['price_now'],
+                                                    element_dict['count'], element_dict['invest'])
             element_dict['num'] = count_value
             count_value += 1
         else:
             element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
             element_dict['num'] = count_history
+            element_dict['middle_price'] = round(element_dict['invest'] / element_dict['count'], 3)
+            element_dict['change_invest'] = get_dif(element_dict['price_now'],
+                                                    element_dict['count'], element_dict['invest'])
             count_history += 1
             history_pies[element_dict['name']] = element_dict
 
@@ -66,4 +74,18 @@ def get_name(tiker):
     tiker_info = assets.pies.get(tiker)
     if tiker_info is not None:
         return tiker_info[0]
+    return ""
+
+
+def get_dif(price, count, total):
+    if price == '' or count == '' or total == '':
+        return ""
+    else:
+        return round(price * count - total, 2)
+
+
+def get_price(tiker):
+    price = assets.pies.get(tiker)
+    if price is not None:
+        return price[0]
     return ""
