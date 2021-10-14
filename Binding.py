@@ -39,6 +39,7 @@ def create_graph():
             d = datetime.strptime(str(doc['Дата исполнения поручения'][count]), '%Y-%m-%d %H:%M:%S')
             date.append(d.strftime("%d/%m/%y"))
         count -= 1
+    plt.gcf().canvas.set_window_title('Изменение общей суммы')
     plt.plot(date, list_money)
     plt.plot(date, lsit_sum)
     plt.title('Пополнение счета')
@@ -317,3 +318,15 @@ def report_invest():
             list_colors.append([i, "green", "lightblue" if i % 2 else "white"])
 
     return list_headers, list_data, list_colors
+
+
+# График вывода истории акции
+def create_history_graph(list_data, list_price, text_header):
+    plt.gcf().canvas.set_window_title(text_header)
+    plt.plot(list_data, list_price)
+    plt.title('Пополнение счета')
+    plt.ylabel('Цена р.')
+    plt.xlabel('Дата')
+    plt.xticks(rotation=90)
+    plt.grid(axis='y')
+    plt.show()

@@ -11,7 +11,7 @@ def parsing_pies_portfolio(doc):
     if len(assets.pies) == 0:
         api_mcx.Handler.get_pies()
     list_header = ['###', 'Наименование', 'Цена сейчас р.', 'Ср. цена', 'Изм. инвест. р.,', 'Инвестировано',
-                   'Количество', 'Продано(шт.)', 'Продажа(р.)', '1 Пай(р.)']
+                   'Количество', 'Продано(шт.)', 'Продажа(р.)', '1 Пай(р.)', 'Фонд']
     portfolio_pies = {}
     for element in reversed(doc.values):
         if element[5] == 'Пай':
@@ -32,7 +32,7 @@ def parsing_pies_portfolio(doc):
     count_value = 1
     count_history = 1
     for element_dict in portfolio_pies.values():
-        element_dict['price_now'] = get_price(element_dict['name'])
+        element_dict['price_now'], element_dict['name_fond'] = get_price(element_dict['name'])
         if element_dict['count'] > element_dict['sold_count']:
             if element_dict['sold_count'] > 0:
                 element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
@@ -87,5 +87,5 @@ def get_dif(price, count, total):
 def get_price(tiker):
     price = assets.pies.get(tiker)
     if price is not None:
-        return price[0]
+        return price
     return ""

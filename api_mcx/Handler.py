@@ -83,14 +83,17 @@ def get_bonds():
     dict = {}
     if info_bonds is not None:
         for bonds in info_bonds['securities']['data']:
-            dict[bonds[0]] = [bonds[1], 0, bonds[2], bonds[3]]
+            if bonds[2] is not None:
+                str_time = datetime.strptime(bonds[3], '%Y-%m-%d').strftime('%d/%m/%Y')
+                dict[bonds[0]] = [bonds[1], 0, bonds[2], str_time]
     else:
         dict = assets.bonds
 
     for bonds in bonds_price['marketdata']['data']:
-        list = dict[bonds[0]]
-        list[1] = bonds[1]
-        dict[bonds[0]] = list
+        if bonds[1] is not None and bonds[0] in dict:
+            list = dict[bonds[0]]
+            list[1] = bonds[1]
+            dict[bonds[0]] = list
 
     list_data = []
     for k, v in dict.items():
@@ -100,18 +103,65 @@ def get_bonds():
     return list_data, list_columns, "Облигации"
 
 
-# Обаботать фонды
+# Обработать фонды
 def get_pies():
-    list_columns = ['Наименование', 'Цена пая(р.)']
+    list_columns = ['Наименование', 'Цена пая(р.)', 'Фонд']
     pies_price = get_pie_api()
+    pies_name = get_name_pie_api()
 
     dict = {}
     for pies in pies_price['marketdata']['data']:
-        dict[pies[0]] = [pies[1]]
+        dict[pies[0]] = [pies[1], ""]
+    for pies in pies_name['securities']['data']:
+        dict[pies[0]][1] = pies[1]
 
     list_data = []
     for k, v in dict.items():
-        list_data.append([k, v[0]])
+        list_data.append([k, v[0], v[1]])
 
     assets.pies = dict
     return list_data, list_columns, "Фонды"
+
+
+# Курсы ЦБРФ
+def get_securities_rates():
+    data = get_cbrf_api()
+    information = str(round(data['cbrf']['data'][0][3], 2)) + "р. - 1 USD\t"
+    information += str(round(data['cbrf']['data'][0][6], 2)) + "р. - 1 EUR"
+    return information
+
+
+# Обработать запрос на дивиденды по тикеру
+def get_dividends(tiker):
+    response = get_dividends_api(tiker)
+    list_dividends = []
+    for el in response['dividends']['data']:
+        list_dividends.append([round(el[3], 3), el[2], el[4]])
+    if len(list_dividends) == 0:
+        list_dividends.append(['', '', ''])
+    else:
+        list_dividends.reverse()
+
+    return list_dividends
+
+
+# Обработать запрос по НКД
+def get_nkd(tiker):
+    response = get_nkd_api(tiker)
+    list = []
+    list.append(response['securities']['data'][0])
+    list[0][1] = datetime.strptime(list[0][1], '%Y-%m-%d').strftime('%d/%m/%Y')
+    return list
+
+
+# Обработать запрос на историю
+def get_history_stocks(tiker):
+    response = get_history_prices_api(tiker)
+    list_data = []
+    list_price_history = []
+    for el in response['history']['data']:
+        el[0] = datetime.strptime(el[0], '%Y-%m-%d').strftime('%d/%m/%Y')
+        list_data.append(el[0])
+        list_price_history.append(el[1])
+
+    return list_data, list_price_history
