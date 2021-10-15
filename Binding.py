@@ -324,7 +324,7 @@ def report_invest():
 def create_history_graph(list_data, list_price, text_header):
     plt.gcf().canvas.set_window_title(text_header)
     plt.plot(list_data, list_price)
-    plt.title('Изменение стоимости')
+    plt.title('Потоковый график')
     plt.ylabel('Цена р.')
     plt.xlabel('Дата')
     plt.xticks(rotation=90)

@@ -139,7 +139,7 @@ def get_securities_rates():
 
 # Обработать запрос на дивиденды по тикеру
 def get_dividends(tiker):
-    response = get_dividends_api(tiker)
+    response = get_dividends_rus_api(tiker)
     list_dividends = []
     for el in response['dividends']['data']:
         list_dividends.append([round(el[3], 3), el[2], el[4]])
@@ -162,14 +162,26 @@ def get_all_nkd(tiker):
     return list
 
 
-# Обработать запрос на историю
-def get_history_stocks(tiker):
-    response = get_history_prices_api(tiker)
+# Обработать запрос на историю Российских акций
+def get_history_rus_stocks(tiker):
+    response = get_history_rus_prices_api(tiker)
     list_data = []
     list_price_history = []
     for el in response['history']['data']:
         el[0] = datetime.strptime(el[0], '%Y-%m-%d').strftime('%d/%m/%Y')
         list_data.append(el[0])
         list_price_history.append(el[1])
+    return list_data, list_price_history
 
+
+# Обработать запрос на историю Зарубежных акций
+def get_history_unrus_stocks(tiker):
+    response = get_history_unrus_prices_api(tiker)
+    list_data = []
+    list_price_history = []
+    for el in response['history']['data']:
+        if el[1] is not None:
+            el[0] = datetime.strptime(el[0], '%Y-%m-%d').strftime('%d/%m/%Y')
+            list_data.append(el[0])
+            list_price_history.append(el[1])
     return list_data, list_price_history

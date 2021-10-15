@@ -129,7 +129,9 @@ def wind_table(list_data, list_columns, info):
             index = (index_page - 1) * 12 + (values['-TABLE_RU-'][0])
             tiker = list_data[index][1]
             if info == "Российские акции":
-                wind_dividends(api_mcx.Handler.get_dividends(tiker), tiker, list_data[index][0])
+                wind_dividends(api_mcx.Handler.get_dividends(tiker), tiker, list_data[index][0], "rus")
+            if info == "Зарубежные акции":
+                wind_dividends(api_mcx.Handler.get_dividends(tiker), tiker, list_data[index][0], "unrus")
             if info == "Облигации":
                 wind_nkd(list_data[index][0], tiker)
         if event == '-back-' and index_page < page_count:
@@ -303,39 +305,17 @@ def wind_history():
     list_history_bonds = to_list(assets.history_bonds)
     list_history_pies = to_list(assets.history_pies)
     layout = [[sg.Table(values=list_history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20,
-                        max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=5,
-                        alternating_row_color='white',
-                        key='-TABLE_DEALS-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        row_height=30)],
-              [sg.Table(values=list_history_bonds, headings=assets.portfolio_bonds[0],
-                        def_col_width=20,
-                        max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=5,
-                        alternating_row_color='white',
-                        key='-TABLE_BONDS-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        row_height=30)],
+                        max_col_width=40, background_color='lightblue', text_color='Black', auto_size_columns=True,
+                        justification='centre', num_rows=5, alternating_row_color='white', key='-TABLE_DEALS-',
+                        selected_row_colors=('Black', 'lightgray'), row_height=30)],
+              [sg.Table(values=list_history_bonds, headings=assets.portfolio_bonds[0], def_col_width=20,
+                        max_col_width=40, background_color='lightblue', text_color='Black', auto_size_columns=True,
+                        justification='centre', num_rows=5, alternating_row_color='white', key='-TABLE_BONDS-',
+                        selected_row_colors=('Black', 'lightgray'), row_height=30)],
               [sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
-                        max_col_width=40,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='centre',
-                        num_rows=5,
-                        alternating_row_color='white',
-                        key='-TABLE_PIES-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        row_height=30)]
+                        max_col_width=40, background_color='lightblue', text_color='Black', auto_size_columns=True,
+                        justification='centre', num_rows=5, alternating_row_color='white', key='-TABLE_PIES-',
+                        selected_row_colors=('Black', 'lightgray'), row_height=30)]
               ]
     sg.theme('BlueMono')
     new_win = sg.Window('Проданные активы', layout)
@@ -364,7 +344,7 @@ def wind_report_invest():
 
 
 # Окно с выводом дивидендов по выбранной акции (за 100 последних дней)
-def wind_dividends(list_dividends, tiker, company):
+def wind_dividends(list_dividends, tiker, company, country):
     list_headers = ['Сумма на акцию', 'Дата', 'Валюта']
     list_colors = []
     for i in range(0, len(list_dividends)):
@@ -385,7 +365,11 @@ def wind_dividends(list_dividends, tiker, company):
     while True:
         event, values = new_win.read()
         if event == 'Показать историю цены':
-            list_data_hist, list_price = api_mcx.Handler.get_history_stocks(tiker)
+            list_data_hist, list_price = [[], []]
+            if country == "rus":
+                list_data_hist, list_price = api_mcx.Handler.get_history_rus_stocks(tiker)
+            elif country == "unrus":
+                list_data_hist, list_price = api_mcx.Handler.get_history_unrus_stocks(tiker)
             create_history_graph(list_data_hist, list_price, company)
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
