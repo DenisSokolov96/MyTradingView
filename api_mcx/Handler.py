@@ -73,7 +73,7 @@ def get_stocks_15m_ago(name_country):
 
 # Обаботать облигации
 def get_bonds():
-    list_columns = ['Название облигации', 'Компания', 'Цена %', 'Доход %', 'Выплата по бумаге']
+    list_columns = ['Название облигации', 'Компания', 'Цена %', 'НКД сейчас', 'Доход %', 'Выплата по бумаге']
     info_bonds = None
     bonds_price = get_bonds_api()
 
@@ -85,7 +85,7 @@ def get_bonds():
         for bonds in info_bonds['securities']['data']:
             if bonds[2] is not None:
                 str_time = datetime.strptime(bonds[3], '%Y-%m-%d').strftime('%d/%m/%Y')
-                dict[bonds[0]] = [bonds[1], 0, bonds[2], str_time]
+                dict[bonds[0]] = [bonds[1], 0, bonds[4], bonds[2], str_time]
     else:
         dict = assets.bonds
 
@@ -97,7 +97,7 @@ def get_bonds():
 
     list_data = []
     for k, v in dict.items():
-        list_data.append([k, v[0], v[1], v[2], v[3]])
+        list_data.append([k, v[0], v[1], v[2], v[3], v[4]])
 
     assets.bonds = dict
     return list_data, list_columns, "Облигации"
@@ -123,12 +123,18 @@ def get_pies():
     return list_data, list_columns, "Фонды"
 
 
-# Курсы ЦБРФ
+# Курсы валют
 def get_securities_rates():
     data = get_cbrf_api()
-    information = str(round(data['cbrf']['data'][0][3], 2)) + "р. - 1 USD\t"
-    information += str(round(data['cbrf']['data'][0][6], 2)) + "р. - 1 EUR"
-    return information
+    str_date = "Валютный курс обнавлен: " + \
+               datetime.strptime(data['securities']['data'][0][0], '%Y-%m-%d').strftime('%d/%m/%Y')
+    mas = data['securities']['data'][0][1].split(':')
+    str_date += " " + mas[0] + ":" + mas[1]
+    str_value = ""
+    for el in data['securities']['data']:
+        if el[2].find('RUB') > -1:
+           str_value += el[2].split('/RUB')[0] + " - " + str(round(el[3], 2)) + " р.  "
+    return str_date, str_value
 
 
 # Обработать запрос на дивиденды по тикеру
@@ -145,12 +151,14 @@ def get_dividends(tiker):
     return list_dividends
 
 
-# Обработать запрос по НКД
-def get_nkd(tiker):
-    response = get_nkd_api(tiker)
+# Обработать запрос по будующим выплатам НКД
+def get_all_nkd(tiker):
+    response = get_all_nkd_api(tiker)
     list = []
-    list.append(response['securities']['data'][0])
-    list[0][1] = datetime.strptime(list[0][1], '%Y-%m-%d').strftime('%d/%m/%Y')
+    for el in response['coupons']['data']:
+        el[0] = datetime.strptime(el[0], '%Y-%m-%d').strftime('%d/%m/%Y')
+        list.append([el[0], el[1], el[2]])
+    list.reverse()
     return list
 
 

@@ -232,7 +232,7 @@ def for_stocks(list_data, str_search):
     list_stocks = []
     for el in list_data:
         if el[0].find(str_search) > -1 or el[1].find(str_search) > -1:
-            s = el[0] + " " + el[1] + " " + str(el[2]) + "р. " + str(el[3]) + "шт. в лоте"
+            s = el[1] + " " + el[0] + " " + str(el[2]) + "р. " + str(el[3]) + "шт. в лоте"
             list_stocks.append(s)
     return list_stocks
 
@@ -241,7 +241,7 @@ def for_bonds(list_data, str_search):
     list_bonds = []
     for el in list_data:
         if el[0].find(str_search) > -1 or el[1].find(str_search) > -1:
-            s = el[1] + " " + str(el[2]) + "%цена " + str(el[3]) + "%доход"
+            s = el[1] + " " + str(el[2]) + "%цена " + str(el[3]) + "%доход " + el[0]
             list_bonds.append(s)
     return list_bonds
 
@@ -324,9 +324,26 @@ def report_invest():
 def create_history_graph(list_data, list_price, text_header):
     plt.gcf().canvas.set_window_title(text_header)
     plt.plot(list_data, list_price)
-    plt.title('Пополнение счета')
+    plt.title('Изменение стоимости')
     plt.ylabel('Цена р.')
     plt.xlabel('Дата')
     plt.xticks(rotation=90)
     plt.grid(axis='y')
     plt.show()
+
+
+# поиск индекса бумаги в списке
+def search_index(name, list_data, info):
+    if info.find('акции') > -1:
+        for i in range(0, len(list_data)):
+            if list_data[i][1].find(name) == 0:
+                return i
+    if info.find('Фонды') > -1:
+        for i in range(0, len(list_data)):
+            if list_data[i][0].find(name) == 0:
+                return i
+    if info.find('Облигации') > -1:
+        for i in range(0, len(list_data)):
+            if list_data[i][0].find(name) == 0:
+                return i
+    return 0

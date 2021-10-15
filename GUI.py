@@ -19,7 +19,10 @@ def main_wind():
                                    '&Операции по счету', '&График ввода ДС']],
                 ['&Настройки', ['&Автозагрузка файлов']]]
     news_list = api_mcx.Handler.get_list_news()
+    str_date, str_value = api_mcx.Handler.get_securities_rates()
     layout = [[sg.Menu(menu_def, tearoff=False)],
+              [sg.Input(size=(160, 1), key='out_value', readonly=True, justification='left', font=("Any", 12),
+                        default_text=str_value, disabled_readonly_background_color='lightblue')],
               [sg.Table(values=news_list, headings=['Дата', 'Новость'], def_col_width=12, max_col_width=60,
                         background_color='lightblue',
                         text_color='Black',
@@ -32,8 +35,8 @@ def main_wind():
                         enable_events=True,
                         row_height=30),
                sg.Frame('', [
-                   [sg.Input(size=(60, 1), key='out_price', readonly=True, justification='center',
-                             default_text=api_mcx.Handler.get_securities_rates(),
+                   [sg.Input(size=(60, 1), key='out_date', readonly=True, justification='center',
+                             default_text=str_date,
                              disabled_readonly_background_color='lightblue')],
                    [sg.Output(size=(60, 35), key='out', background_color='white')]
                ]
@@ -50,7 +53,9 @@ def main_wind():
 
 
 def func_menu(event, window, values, news_list):
-    window['out_price'].update(api_mcx.Handler.get_securities_rates())
+    str_date, str_value = api_mcx.Handler.get_securities_rates()
+    window['out_date'].update(str_date)
+    window['out_value'].update(str_value)
     window['out'].update("")
     if event == '-TABLE_NEWS-':
         id_news = news_list[values['-TABLE_NEWS-'][0]][2]
@@ -114,20 +119,19 @@ def wind_table(list_data, list_columns, info):
                   justification='centre', num_rows=12, alternating_row_color='white',
                   key='-TABLE_RU-', enable_events=True, selected_row_colors=('Black', 'lightgray'), row_height=30,
                   tooltip=info)],
-    [sg.Text('*Нажатие на строку с ценной бумагой отразит дивидендную доходность\n и историю изменения цены',
+    [sg.Text('*Нажатие на строку с ценной бумагой отразит дивидендную доходность и\nисторию изменения цены',
              background_color="lightblue")]]
     sg.theme('BlueMono')
     new_win = sg.Window(info, layout, return_keyboard_events=True)
     while True:
         event, values = new_win.read()
-
         if event == '-TABLE_RU-':
             index = (index_page - 1) * 12 + (values['-TABLE_RU-'][0])
             tiker = list_data[index][1]
             if info == "Российские акции":
                 wind_dividends(api_mcx.Handler.get_dividends(tiker), tiker, list_data[index][0])
             if info == "Облигации":
-                wind_nkd(api_mcx.Handler.get_nkd(list_data[index][0]), tiker)
+                wind_nkd(list_data[index][0], tiker)
         if event == '-back-' and index_page < page_count:
             index_page += 1
             new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
@@ -140,6 +144,15 @@ def wind_table(list_data, list_columns, info):
             list_dates = search(list_data, values['-search-'], info)
             new_win['-search-'].update(values=list_dates)
             new_win['-search-'].Widget.event_generate('<Down>')
+        if event == '-search-' and values['-search-'] != "":
+            str_mas = values['-search-'].split(' ')
+            if info.find('Облигации') == -1:
+                index = search_index(str_mas[0], list_data, info)
+            else:
+                index = search_index(str_mas[len(str_mas)-1], list_data, info)
+            index_page = int(index / 12) + 1
+            new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
+            new_win['-TABLE_RU-'].update(list_data[(index_page - 1) * 12:index_page * 12])
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     new_win.close()
@@ -380,10 +393,11 @@ def wind_dividends(list_dividends, tiker, company):
 
 
 # Окно с выводом нкд по облигации
-def wind_nkd(list, tiker):
-    list_headers = ['НКД на сегодня', 'Дата следующей выплаты', 'НКД на дату выплаты']
+def wind_nkd(id_tiker, tiker):
+    list_all_nkd = api_mcx.Handler.get_all_nkd(id_tiker)
+    list_headers = ['Дата выплаты', 'НКД р.', 'Доход в % за год']
 
-    layout = [[sg.Table(values=list, headings=list_headers, def_col_width=20, max_col_width=40,
+    layout = [[sg.Table(values=list_all_nkd, headings=list_headers, def_col_width=20, max_col_width=40,
                         background_color='lightblue', text_color='Black',
                         auto_size_columns=True, justification='centre', num_rows=10, alternating_row_color='white',
                         key='-TABLE_NKD-', selected_row_colors=('Black', 'lightgray'), row_height=30)]

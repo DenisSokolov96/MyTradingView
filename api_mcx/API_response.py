@@ -66,7 +66,7 @@ def get_name_bonds_api():
     api_result = requests.get(
         "https://iss.moex.com/iss/engines/stock/markets/bonds/boardgroups/58/securities.json?"
         "iss.dp=comma&iss.meta=off&iss.only=securities&securities.columns=SECID,SHORTNAME,"
-        "COUPONPERCENT,NEXTCOUPON")
+        "COUPONPERCENT,NEXTCOUPON,ACCRUEDINT")
     api_response = api_result.json()
     return api_response
 
@@ -92,7 +92,7 @@ def get_name_pie_api():
 # Получить курсы ЦБРФ
 def get_cbrf_api():
     api_result = requests.get(
-        "https://iss.moex.com/iss/statistics/engines/currency/markets/selt/rates.json?iss.meta=off")
+        "https://iss.moex.com/iss/statistics/engines/futures/markets/indicativerates/securities.json?iss.meta=off")
     api_response = api_result.json()
     return api_response
 
@@ -106,11 +106,11 @@ def get_dividends_api(tiker):
     return api_response
 
 
-# Получить НКД
-def get_nkd_api(tiker):
+# Получить выплаты по облигации
+def get_all_nkd_api(tiker):
     api_result = requests.get(
-        "https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQCB/securities/" + tiker + ".json?"
-        "iss.meta=off&iss.only=securities&securities.columns=ACCRUEDINT,NEXTCOUPON,COUPONVALUE")
+        "https://iss.moex.com/iss/statistics/engines/stock/markets/bonds/bondization/" + tiker + "/amortizations.json?"
+        "iss.meta=off&coupons.columns=coupondate,value,valueprc")
     api_response = api_result.json()
     return api_response
 
