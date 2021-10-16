@@ -163,25 +163,36 @@ def get_all_nkd(tiker):
 
 
 # Обработать запрос на историю Российских акций
-def get_history_rus_stocks(tiker):
-    response = get_history_rus_prices_api(tiker)
-    list_data = []
-    list_price_history = []
-    for el in response['history']['data']:
-        el[0] = datetime.strptime(el[0], '%Y-%m-%d').strftime('%d/%m/%Y')
-        list_data.append(el[0])
-        list_price_history.append(el[1])
-    return list_data, list_price_history
+def get_history_stocks(tiker, info):
+    now = datetime.now()
+    delta = timedelta(days=100)
+    date = (now - delta).strftime('%Y-%m-%d')
+    res_data = []
+    res_price_history = []
+    last_date = now + timedelta(days=1)
 
+    for i in range(0, 3):
+        list_data = []
+        list_price_history = []
+        if info == "rus":
+            response = get_history_rus_prices_api(tiker, date)
+        else:
+            response = get_history_unrus_prices_api(tiker, date)
+        for el in response['history']['data']:
+            if el[1] is not None:
+                el[0] = datetime.strptime(el[0], '%Y-%m-%d')
+                if last_date > el[0]:
+                    list_data.append(el[0])
+                    list_price_history.append(el[1])
 
-# Обработать запрос на историю Зарубежных акций
-def get_history_unrus_stocks(tiker):
-    response = get_history_unrus_prices_api(tiker)
-    list_data = []
-    list_price_history = []
-    for el in response['history']['data']:
-        if el[1] is not None:
-            el[0] = datetime.strptime(el[0], '%Y-%m-%d').strftime('%d/%m/%Y')
-            list_data.append(el[0])
-            list_price_history.append(el[1])
-    return list_data, list_price_history
+        if len(list_data) > 0:
+            mas = str(list_data[0]).split(' ')
+            last_date = datetime.strptime(mas[0], '%Y-%m-%d')
+            date = (datetime.strptime(date, '%Y-%m-%d') - delta).strftime('%Y-%m-%d')
+            res_data = list_data + res_data
+            res_price_history = list_price_history + res_price_history
+
+    for i in range(0, len(res_data)):
+        res_data[i] = datetime.strptime(str(res_data[i]).split(' ')[0], '%Y-%m-%d').strftime('%d/%m/%y')
+
+    return res_data, res_price_history

@@ -116,10 +116,7 @@ def get_all_nkd_api(tiker):
 
 
 # Получить историю изменения цены
-def get_history_rus_prices_api(tiker):
-    now = datetime.now()
-    delta = timedelta(days=100)
-    date = (now - delta).strftime('%Y-%m-%d')
+def get_history_rus_prices_api(tiker, date):
     api_result = requests.get(
         "https://iss.moex.com/iss/history/engines/stock/markets/shares/securities/" + tiker +
         "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE&from="+date)
@@ -128,12 +125,9 @@ def get_history_rus_prices_api(tiker):
 
 
 # Получить историю изменения цены по Американским акциям
-def get_history_unrus_prices_api(tiker):
-    now = datetime.now()
-    delta = timedelta(days=100)
-    date = (now - delta).strftime('%Y-%m-%d')
+def get_history_unrus_prices_api(tiker, date):
     api_result = requests.get(
         "https://iss.moex.com/iss/history/engines/stock/markets/foreignshares/securities/" + tiker +
-        "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE&from="+date)
+        "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE&from="+date+"")
     api_response = api_result.json()
     return api_response

@@ -327,7 +327,7 @@ def create_history_graph(list_data, list_price, text_header):
     plt.title('Потоковый график')
     plt.ylabel('Цена р.')
     plt.xlabel('Дата')
-    plt.xticks(rotation=90)
+    plt.xticks(list_data[::15], rotation=45)
     plt.grid(axis='y')
     plt.show()
 

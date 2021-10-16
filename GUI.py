@@ -367,9 +367,9 @@ def wind_dividends(list_dividends, tiker, company, country):
         if event == 'Показать историю цены':
             list_data_hist, list_price = [[], []]
             if country == "rus":
-                list_data_hist, list_price = api_mcx.Handler.get_history_rus_stocks(tiker)
+                list_data_hist, list_price = api_mcx.Handler.get_history_stocks(tiker, "rus")
             elif country == "unrus":
-                list_data_hist, list_price = api_mcx.Handler.get_history_unrus_stocks(tiker)
+                list_data_hist, list_price = api_mcx.Handler.get_history_stocks(tiker, "unrus")
             create_history_graph(list_data_hist, list_price, company)
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
