@@ -91,8 +91,8 @@ def get_price(tiker):
 
 
 def get_dif(price, count, total):
-    if price == '' or count == '' or total == '':
-        return ""
+    if price is None or count == '' or total == '':
+        return "-"
     else:
         return round(price * count - total, 2)
 

@@ -10,10 +10,10 @@ def get_news():
 
 
 # для новостей сайта указать id
-def get_news_id(news_id):
-    api_result = requests.get("http://iss.moex.com/iss/sitenews/" + str(news_id) + ".json")
-    api_response = api_result.json()
-    return api_response
+# def get_news_id(news_id):
+#     api_result = requests.get("http://iss.moex.com/iss/sitenews/" + str(news_id) + ".json")
+#     api_response = api_result.json()
+#     return api_response
 
 
 # Получить российские акции: тикер | цена за штуку
@@ -119,7 +119,7 @@ def get_all_nkd_api(tiker):
 def get_history_rus_prices_api(tiker, date):
     api_result = requests.get(
         "https://iss.moex.com/iss/history/engines/stock/markets/shares/securities/" + tiker +
-        "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE&from="+date)
+        "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE,BOARDID&from="+date)
     api_response = api_result.json()
     return api_response
 
@@ -128,6 +128,6 @@ def get_history_rus_prices_api(tiker, date):
 def get_history_unrus_prices_api(tiker, date):
     api_result = requests.get(
         "https://iss.moex.com/iss/history/engines/stock/markets/foreignshares/securities/" + tiker +
-        "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE&from="+date+"")
+        "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE,BOARDID&from="+date+"")
     api_response = api_result.json()
     return api_response

@@ -263,17 +263,19 @@ def report_invest():
     list_headers = ['Ценная бумага', 'Инвестированно', 'Оценка активов сейчас', 'Изменение в р.', 'Изменение в %']
     list_data = []
     # Акции------------------------------------------------------------------------
-    invest = 0
-    price_now = 0
-    invest_us = 0
-    price_now_us = 0
+    invest = 0.0
+    price_now = 0.0
+    invest_us = 0.0
+    price_now_us = 0.0
     for i in range(0, len(list_values_stocks[0])):
         if list_values_stocks[0][i][13] != "США":
             invest += list_values_stocks[0][i][8]
-            price_now += list_values_stocks[0][i][8] + list_values_stocks[0][i][6]
+            if type(list_values_stocks[0][i][6]) is float:
+                price_now += list_values_stocks[0][i][8] + list_values_stocks[0][i][6]
         else:
             invest_us += list_values_stocks[0][i][8]
-            price_now_us += list_values_stocks[0][i][8] + list_values_stocks[0][i][6]
+            if type(list_values_stocks[0][i][6]) is float:
+                price_now_us += list_values_stocks[0][i][8] + list_values_stocks[0][i][6]
     invest = round(invest, 2)
     price_now = round(price_now, 2)
     list_data.append(['Российские акции', invest, price_now,
@@ -283,28 +285,30 @@ def report_invest():
     list_data.append(['Зарубежные акции', invest_us, price_now_us,
                       round(price_now_us - invest_us, 2), str(round(price_now_us * 100 / invest_us - 100, 2)) + " %"])
     # Облигации------------------------------------------------------------------------
-    invest = 0
-    price_now = 0
+    invest = 0.0
+    price_now = 0.0
     for i in range(0, len(list_values_bonds[0])):
         invest += list_values_bonds[0][i][6]
-        price_now += list_values_bonds[0][i][6] + list_values_bonds[0][i][5]
+        if type(list_values_bonds[0][i][5]) is float:
+            price_now += list_values_bonds[0][i][6] + list_values_bonds[0][i][5]
     invest = round(invest, 2)
     price_now = round(price_now, 2)
     list_data.append(['Облигации', invest, price_now, round(price_now - invest, 2),
                       str(round(price_now * 100 / invest - 100, 2)) + " %"])
     # ETF фонды-------------------------------------------------------------------------
-    invest = 0
-    price_now = 0
+    invest = 0.0
+    price_now = 0.0
     for i in range(0, len(list_values_pies[0])):
         invest += list_values_pies[0][i][5]
-        price_now += list_values_pies[0][i][5] + list_values_pies[0][i][4]
+        if type(list_values_pies[0][i][4]) is float:
+            price_now += list_values_pies[0][i][5] + list_values_pies[0][i][4]
     invest = round(invest, 2)
     price_now = round(price_now, 2)
     list_data.append(['ETF фонды', invest, price_now, round(price_now - invest, 2),
                       str(round(price_now * 100 / invest - 100, 2)) + " %"])
 
-    invest = 0
-    price_now = 0
+    invest = 0.0
+    price_now = 0.0
     for i in range(0, len(list_data)):
         invest += list_data[i][1]
         price_now += list_data[i][2]

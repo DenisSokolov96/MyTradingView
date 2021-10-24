@@ -15,18 +15,18 @@ def get_list_news():
     list_news = []
     for news in get_news()['sitenews']['data']:
         d = datetime.strptime(news[3], '%Y-%m-%d %H:%M:%S')
-        list_news.append([d.strftime("%H:%M %d/%m/%Y"), news[2], news[0]])
+        list_news.append([d.strftime("%H:%M %d/%m/%y"), news[2], news[0]])
     return list_news
 
 
 # новость по id
-def get_newtext_id(id):
-    news = get_news_id(id)['content']['data'][0][3]
-    soup = BeautifulSoup(news, "html.parser")
-    for elm in soup(["script", "style"]):
-        elm.extract()
-    text = soup.get_text()
-    return text
+# def get_newtext_id(id):
+#     news = get_news_id(id)['content']['data'][0][3]
+#     soup = BeautifulSoup(news, "html.parser")
+#     for elm in soup(["script", "style"]):
+#         elm.extract()
+#     text = soup.get_text()
+#     return text
 
 
 # Получить акции
@@ -171,7 +171,7 @@ def get_history_stocks(tiker, info):
     res_price_history = []
     last_date = now + timedelta(days=1)
 
-    for i in range(0, 3):
+    for i in range(0, 5):
         list_data = []
         list_price_history = []
         if info == "rus":
@@ -179,7 +179,7 @@ def get_history_stocks(tiker, info):
         else:
             response = get_history_unrus_prices_api(tiker, date)
         for el in response['history']['data']:
-            if el[1] is not None:
+            if el[1] is not None and el[2] != "TQBD":
                 el[0] = datetime.strptime(el[0], '%Y-%m-%d')
                 if last_date > el[0]:
                     list_data.append(el[0])

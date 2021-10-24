@@ -5,8 +5,10 @@ import api_mcx
 from Parsing import *
 from XMLRefact import *
 import PySimpleGUI as sg
+import webview
 
-sizeX = 1150
+
+sizeX = 1080
 sizeY = 600
 
 
@@ -21,27 +23,15 @@ def main_wind():
     news_list = api_mcx.Handler.get_list_news()
     str_date, str_value = api_mcx.Handler.get_securities_rates()
     layout = [[sg.Menu(menu_def, tearoff=False)],
-              [sg.Input(size=(160, 1), key='out_value', readonly=True, justification='left', font=("Any", 12),
+              [sg.Input(size=(38, 1), key='out_date', readonly=True, justification='left',
+                         default_text=str_date, disabled_readonly_background_color='lightblue')],
+              [sg.Input(size=(117, 1), key='out_value', readonly=True, justification='left', font=("Any", 12),
                         default_text=str_value, disabled_readonly_background_color='lightblue')],
-              [sg.Table(values=news_list, headings=['Дата', 'Новость'], def_col_width=12, max_col_width=60,
-                        background_color='lightblue',
-                        text_color='Black',
-                        auto_size_columns=True,
-                        justification='left',
-                        num_rows=20,
-                        alternating_row_color='white',
-                        key='-TABLE_NEWS-',
-                        selected_row_colors=('Black', 'lightgray'),
-                        enable_events=True,
-                        row_height=30),
-               sg.Frame('', [
-                   [sg.Input(size=(60, 1), key='out_date', readonly=True, justification='center',
-                             default_text=str_date,
-                             disabled_readonly_background_color='lightblue')],
-                   [sg.Output(size=(60, 35), key='out', background_color='white')]
-               ]
-                        )
-               ]
+              [sg.Table(values=news_list, headings=['Дата', 'Новость'],
+                        def_col_width=12, max_col_width=105,
+                        background_color='lightblue', text_color='Black', auto_size_columns=True,
+                        justification='left', num_rows=20, alternating_row_color='white', key='-TABLE_NEWS-',
+                        selected_row_colors=('Black', 'lightgray'), enable_events=True, row_height=30)]
               ]
     window = sg.Window('Мои инвестиции', layout, size=(sizeX, sizeY))
     while True:
@@ -53,13 +43,15 @@ def main_wind():
 
 
 def func_menu(event, window, values, news_list):
-    str_date, str_value = api_mcx.Handler.get_securities_rates()
-    window['out_date'].update(str_date)
-    window['out_value'].update(str_value)
-    window['out'].update("")
+    if event not in (sg.WIN_CLOSED, 'Quit'):
+        str_date, str_value = api_mcx.Handler.get_securities_rates()
+        window['out_date'].update(str_date)
+        window['out_value'].update(str_value)
     if event == '-TABLE_NEWS-':
         id_news = news_list[values['-TABLE_NEWS-'][0]][2]
-        window['out'].update(redact(api_mcx.Handler.get_newtext_id(id_news)))
+        webview.create_window('Новости Московской биржи', url='https://www.moex.com/n' + str(id_news) + '/?nt=101',
+                              width=sizeX, height=sizeY)
+        webview.start()
     ################################################
     if event == "Российские акции":
         list_data, list_columns, info = api_mcx.Handler.get_stocks_15m_ago('ru')
@@ -242,15 +234,15 @@ def wind_portfolio():
 
     list_colors_stocks = []
     for i in range(0, len(list_values_stocks)):
-        if list_values_stocks[i][6] > 0:
+        if type(list_values_stocks[i][6]) is float and list_values_stocks[i][6] > 0:
             list_colors_stocks.append([i, "green", "lightblue" if i % 2 else "white"])
     list_colors_bonds = []
     for i in range(0, len(list_values_bonds)):
-        if list_values_bonds[i][5] > 0:
+        if type(list_values_bonds[i][5]) is float and list_values_bonds[i][5] > 0:
             list_colors_bonds.append([i, "green", "lightblue" if i % 2 else "white"])
     list_colors_pies = []
     for i in range(0, len(list_values_pies)):
-        if list_values_pies[i][4] > 0:
+        if type(list_values_pies[i][4]) is float and list_values_pies[i][4] > 0:
             list_colors_pies.append([i, "green", "lightblue" if i % 2 else "white"])
 
     menu_def = [['&Общие диаграммы', ['&Круговая диаграмма', '&Столбчатая диаграмма',
