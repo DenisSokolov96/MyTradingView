@@ -51,6 +51,8 @@ def parsing_for_portfolio(doc):
                 else:
                     portfolio_stocks[element[4]]['sold_count'] += element[8]
                     portfolio_stocks[element[4]]['sold'] = round(portfolio_stocks[element[4]]['sold'] + element[16], 2)
+                    portfolio_stocks[element[4]]['price_sold'] = round(portfolio_stocks[element[4]]['invest'] /
+                                                                       portfolio_stocks[element[4]]['count'], 2)
 
     history_stocks = {}
     count_value = 1
@@ -64,8 +66,9 @@ def parsing_for_portfolio(doc):
                 medium = round(element_dict['invest'] / element_dict['count'], 2)
                 element_dict['count'] -= element_dict['sold_count']
                 element_dict['invest'] = medium * element_dict['count']
+                medium_to_sold = element_dict['price_sold']
                 element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
-                res = round(element_dict['sold'] - element_dict['sold_count'] * medium)
+                res = round(element_dict['sold'] - element_dict['sold_count'] * medium_to_sold, 2)
                 res = round(res - res * 0.13, 2)
                 element_dict['income'] = res
 
@@ -75,11 +78,11 @@ def parsing_for_portfolio(doc):
             element_dict['num'] = count_value
             count_value += 1
         else:
-            element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 2)
-            res = round(element_dict['sold'] - element_dict['invest'], 2)
+            element_dict['price_sold'] = round(element_dict['sold'] / element_dict['sold_count'], 3)
+            res = round(element_dict['sold'] - element_dict['invest'], 3)
             res = round(res - res * 0.13, 2)
             element_dict['income'] = res
-            element_dict['middle_price'] = res
+            element_dict['middle_price'] = round(element_dict['invest'] / element_dict['count'], 3)
             element_dict['change_invest'] = get_dif(element_dict['price_now'],
                                                     element_dict['count'], element_dict['invest'])
             element_dict['num'] = count_history

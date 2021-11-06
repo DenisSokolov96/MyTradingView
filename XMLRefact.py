@@ -5,11 +5,11 @@ import pandas as pd
 
 from Assets import Assets
 
-
 assets = Assets()
 path_to_file = 'dataXML/UserInfo.xml'
 
 
+# Прочитать из XML пути для парсинга файлов брокера
 def load_xml_files():
     try:
         list_deal = []
@@ -29,6 +29,7 @@ def load_xml_files():
         tree.write(path_to_file, pretty_print=True, encoding="utf-8", xml_declaration=True)
 
 
+# Прочитать и записать данные в память
 def send_to_read_data(list_deal, list_transaction):
     if len(list_deal) > 0:
         assets.doc_deals = pd.read_excel(list_deal[0])
@@ -36,6 +37,7 @@ def send_to_read_data(list_deal, list_transaction):
         assets.deposits_write_offs = pd.read_excel(list_transaction[0])
 
 
+# Открыть проводник
 def set_path(name_doc):
     ftypes = [('Документы по' + name_doc, '*.xlsx'), ('Документы', '*.xls'), ('Все файлы', '*')]
     dlg = sg.filedialog.Open(filetypes=ftypes)
@@ -45,6 +47,7 @@ def set_path(name_doc):
     return ''
 
 
+# Запись путей к файлу для парсинга в XML
 def write_to_xml(path_deals, path_trans):
     if path_deals != '':
         tree = etree.parse(path_to_file)
@@ -56,3 +59,4 @@ def write_to_xml(path_deals, path_trans):
         condition_elem = tree.find("transactions")
         etree.SubElement(condition_elem, 'transaction').text = path_trans
         tree.write(path_to_file, pretty_print=True, encoding='utf-8', xml_declaration=True)
+    load_xml_files()

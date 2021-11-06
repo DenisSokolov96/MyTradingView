@@ -15,7 +15,7 @@ sizeY = 600
 # основное окно
 def main_wind():
     sg.theme('Light Green')
-    menu_def = [['&Информация', ['&Обновить новости']],
+    menu_def = [['&Информация', ['&Обновить новости', '&Торговые системы', '&Сводные обороты по рынкам']],
                 ['&Стоимость активов на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации', '&Фонды']],
                 ['&Мой портфель', ['&Общий отчет инвестиций', '&Просмотреть портфель', '&Мои сделки',
                                    '&Операции по счету', '&График ввода ДС']],
@@ -72,6 +72,12 @@ def func_menu(event, window, values, news_list):
     ################################################
     if event == "Обновить новости":
         window['-TABLE_NEWS-'].update(api_mcx.Handler.get_list_news())
+        return
+    if event == "Торговые системы":
+        wind_trade_system()
+        return
+    if event == "Сводные обороты по рынкам":
+        wind_turnovers()
         return
     ################################################
     if event == "Мои сделки":
@@ -157,7 +163,7 @@ def wind_my_money(doc):
     list_header, list_values, write_text = write_offs(doc)
     page_count = math.ceil(len(list_values) / 15)
     index_page = 1
-    layout = [[sg.Text(size=(70, 3), key='out', text=write_text)],
+    layout = [[sg.Text(size=(80, 3), key='out', text=write_text)],
               [sg.Table(values=list_values[:15], headings=list_header, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -404,6 +410,48 @@ def wind_auto_load():
             window['-Transaction-'].update(set_path('эачислению/списанию'))
         if event == 'Сохранить':
             write_to_xml(values['-Deal-'], values['-Transaction-'])
+        if event in (sg.WIN_CLOSED, 'Quit'):
+            break
+    window.close()
+
+
+# Окно с доступными торговыми системами
+def wind_trade_system():
+    sg.theme('Light Green')
+    list_value = api_mcx.Handler.get_trade_system()
+    list_headers = ['###', 'Торговая система']
+
+    layout = [[sg.Table(values=list_value, headings=list_headers, max_col_width=40,
+                        background_color='lightblue', text_color='Black',
+                        auto_size_columns=True, justification='center', num_rows=10, alternating_row_color='white',
+                        key='-TABLE_TS-', selected_row_colors=('Black', 'lightgray'), row_height=30)]
+              ]
+    window = sg.Window('Доступные торговые системы', layout)
+    while True:
+        event, values = window.read()
+        if event in (sg.WIN_CLOSED, 'Quit'):
+            break
+    window.close()
+
+
+# Окно оборотов на рынке
+def wind_turnovers():
+    sg.theme('Light Green')
+    list_today, list_yesterday = api_mcx.Handler.get_turnovers()
+    list_headers = ['Торговая система', 'Кол-во торгов', 'Оборот в Р.', 'Оборот в $', 'Дата и время']
+
+    layout = [[sg.Table(values=list_today, headings=list_headers, max_col_width=40,
+                        background_color='lightblue', text_color='Black',
+                        auto_size_columns=True, justification='center', num_rows=5, alternating_row_color='white',
+                        key='-TABLE_Turn1-', selected_row_colors=('Black', 'lightgray'), row_height=30)],
+              [sg.Table(values=list_yesterday, headings=list_headers, max_col_width=40,
+                        background_color='lightblue', text_color='Black',
+                        auto_size_columns=True, justification='center', num_rows=5, alternating_row_color='white',
+                        key='-TABLE_Turn2-', selected_row_colors=('Black', 'lightgray'), row_height=30)]
+              ]
+    window = sg.Window('Сводные обороты по рынкам', layout)
+    while True:
+        event, values = window.read()
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     window.close()

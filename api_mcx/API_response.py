@@ -131,3 +131,19 @@ def get_history_unrus_prices_api(tiker, date):
         "/securities.json?iss.meta=off&history.columns=TRADEDATE,CLOSE,BOARDID&from="+date+"")
     api_response = api_result.json()
     return api_response
+
+
+# Получить доступные торговые системы
+def get_trade_system_api():
+    api_result = requests.get(
+        "https://iss.moex.com/iss/engines.json?iss.meta=off")
+    api_response = api_result.json()
+    return api_response
+
+
+# Получить сводные обороты по рынкам
+def get_turnovers_api():
+    api_result = requests.get(
+        "https://iss.moex.com/iss/turnovers.json?iss.meta=off")
+    api_response = api_result.json()
+    return api_response

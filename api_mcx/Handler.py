@@ -196,3 +196,31 @@ def get_history_stocks(tiker, info):
         res_data[i] = datetime.strptime(str(res_data[i]).split(' ')[0], '%Y-%m-%d').strftime('%d/%m/%y')
 
     return res_data, res_price_history
+
+
+def get_trade_system():
+    response = get_trade_system_api()
+    list_value = []
+    for el in response['engines']['data']:
+        list_value.append([el[0], el[2]])
+    return list_value
+
+
+def get_turnovers():
+    response = get_turnovers_api()
+    list_today = []
+    list_yesterday = []
+    for el in response['turnovers']['data']:
+        str_date = datetime.strptime(el[5], '%Y-%m-%d %H:%M:%S').strftime("%H:%M %d/%m/%y")
+        if el[2] is not None and el[3] is not None:
+            list_today.append([el[6], el[4], round(el[2], 2), round(el[3], 2), str_date])
+        else:
+            list_today.append([el[6], el[4], el[2], el[3], str_date])
+
+    for el in response['turnoversprevdate']['data']:
+        str_date = datetime.strptime(el[5], '%Y-%m-%d %H:%M:%S').strftime("%H:%M %d/%m/%y")
+        if el[2] is not None and el[3] is not None:
+            list_yesterday.append([el[6], el[4], round(el[2], 2), round(el[3], 2), str_date])
+        else:
+            list_yesterday.append([el[6], el[4], el[2], el[3], str_date])
+    return list_today, list_yesterday
