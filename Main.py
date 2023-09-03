@@ -9,9 +9,9 @@ import warnings
 import PySimpleGUI as sg
 import requests
 
-from Assets import Assets
+from AppLogger import file_logger
 from GUI import main_wind, wind_error
-from XMLRefact import load_xml_files
+from JSONRefact import load_json_files
 
 warnings.filterwarnings("ignore")
 
@@ -19,8 +19,10 @@ warnings.filterwarnings("ignore")
 def check_net():
     try:
         response = requests.get("http://www.google.com")
+        file_logger.info("интернет соединение устойчиво")
         return True
     except requests.ConnectionError:
+        file_logger.warning("соединение с интернетом отсутствует")
         return False
 
 
@@ -31,10 +33,12 @@ def resource_path(relative):
 
 
 if __name__ == '__main__':
+    file_logger.info("Запуск приложения...")
+
     ico = resource_path(os.path.join('data', 'new_ico.ico'))
     sg.set_global_icon(ico)
 
-    load_xml_files()
+    load_json_files()
 
     if check_net():
         main_wind()

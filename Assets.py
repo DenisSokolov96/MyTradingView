@@ -26,11 +26,11 @@ class Assets:
         return cls.instance
 
     @property
-    def deposits_write_offs(cls):
+    def doc_transactions(cls):
         return cls._deposits_write_offs
 
-    @deposits_write_offs.setter
-    def deposits_write_offs(cls, _deposits_write_offs):
+    @doc_transactions.setter
+    def doc_transactions(cls, _deposits_write_offs):
         cls._deposits_write_offs = _deposits_write_offs
 
     @property

@@ -1,8 +1,9 @@
 import Parsing
+import api_mcx
+import tools
 from Assets import Assets
 from Binding import check_none, handler_for_out
-from tools.StructRep import dict_bonds
-import api_mcx
+
 
 assets = Assets()
 
@@ -16,7 +17,7 @@ def parsing_bonds_portfolio(doc):
     for element in reversed(doc.values):
         if element[5] == 'Облигация':
             if portfolio_bonds.get(element[4]) is None:
-                portfolio_bonds[element[4]] = dict_bonds.copy()
+                portfolio_bonds[element[4]] = tools.dict_bonds.copy()
                 portfolio_bonds[element[4]]['name'] = element[4]
                 portfolio_bonds[element[4]]['count'] = element[8]
                 portfolio_bonds[element[4]]['invest'] = round(element[16], 2)
@@ -87,7 +88,8 @@ def get_price(tiker):
     price = assets.bonds.get(tiker)
     if price is not None:
         return price[1]
-    return ""
+    # если данные не найдены, то 1000 так она погашена
+    return 1000
 
 
 def get_dif(price, count, total):

@@ -76,8 +76,8 @@ def scan_list(return_count_list):
     vals_money = []
     explode = []
     for element in assets.portfolio_stocks[1].values():
-        vals_money.append(element['invest'])
-        labels.append(element['company'])
+        vals_money.append(element.info_stocks['invest'])
+        labels.append(element.info_stocks['company'])
         explode.append(0.2)
     for element in assets.portfolio_bonds[1].values():
         vals_money.append(element['invest'])
@@ -114,7 +114,7 @@ def get_compos():
 
     sum = 0
     for element in assets.portfolio_stocks[1].values():
-        sum += element['invest']
+        sum += element.info_stocks['invest']
     vals_money.append(round(sum, 2))
 
     sum = 0
@@ -139,12 +139,12 @@ def get_rus_unrus_stocks():
 def get_stocks_all():
     vals_money = [0, 0, 0]
     for element in assets.portfolio_stocks[1].values():
-        if element['paper'] == 'Деп. рас.':
-            vals_money[2] += element['invest']
-        elif element['tiker'].find('-RM') != -1:
-            vals_money[0] += element['invest']
+        if element.info_stocks['paper'] == 'Деп. рас.':
+            vals_money[2] += element.info_stocks['invest']
+        elif element.info_stocks['tiker'].find('-RM') != -1:
+            vals_money[0] += element.info_stocks['invest']
         else:
-            vals_money[1] += element['invest']
+            vals_money[1] += element.info_stocks['invest']
 
     for i in range(0, len(vals_money)):
         vals_money[i] = round(vals_money[i], 2)
@@ -174,8 +174,8 @@ def get_name_stocks():
     labels = []
     vals_money = []
     for element in assets.portfolio_stocks[1].values():
-        labels.append(element['company'])
-        vals_money.append(element['invest'])
+        labels.append(element.info_stocks['company'])
+        vals_money.append(element.info_stocks['invest'])
     write_diagramm(labels, vals_money, 'Акции в портфеле')
 
 
@@ -203,6 +203,20 @@ def handler_for_out(data):
     return list_header, list_value
 
 
+# Костыль, нужен чтобы проект запустился один раз необходимо переделывать все в Class... как в ClassStock
+def handler_for_out_STOCKS(data):
+    list_header = data[0]
+    list_value = []
+
+    for dict in data[1].values():
+        temp = []
+        for val in dict.info_stocks.values():
+            temp.append(val)
+        list_value.append(temp)
+
+    return list_header, list_value
+
+
 def to_list(data):
     new_list = []
     for element_dict in data.values():
@@ -212,6 +226,16 @@ def to_list(data):
         new_list.append(temp)
     return new_list
 
+
+#Костыль для запуска, нужно делать один общий метод
+def to_list_stocks(data):
+    new_list = []
+    for element_dict in data.values():
+        temp = []
+        for el in element_dict.info_stocks.values():
+            temp.append(el)
+        new_list.append(temp)
+    return new_list
 
 def redact(text):
     page = text.replace("\n\n", "\n")

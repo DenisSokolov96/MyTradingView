@@ -3,10 +3,9 @@ import math
 import tools
 import api_mcx
 from Parsing import *
-from XMLRefact import *
+from JSONRefact import *
 import PySimpleGUI as sg
 import webview
-
 
 sizeX = 1080
 sizeY = 600
@@ -24,7 +23,7 @@ def main_wind():
     str_date, str_value = api_mcx.Handler.get_securities_rates()
     layout = [[sg.Menu(menu_def, tearoff=False)],
               [sg.Input(size=(38, 1), key='out_date', readonly=True, justification='left',
-                         default_text=str_date, disabled_readonly_background_color='lightblue')],
+                        default_text=str_date, disabled_readonly_background_color='lightblue')],
               [sg.Input(size=(117, 1), key='out_value', readonly=True, justification='left', font=("Any", 12),
                         default_text=str_value, disabled_readonly_background_color='lightblue')],
               [sg.Table(values=news_list, headings=['Дата', 'Новость'],
@@ -117,8 +116,8 @@ def wind_table(list_data, list_columns, info):
                   justification='centre', num_rows=12, alternating_row_color='white',
                   key='-TABLE_RU-', enable_events=True, selected_row_colors=('Black', 'lightgray'), row_height=30,
                   tooltip=info)],
-    [sg.Text('*Нажатие на строку с ценной бумагой отразит дивидендную доходность и\nисторию изменения цены',
-             background_color="lightblue")]]
+        [sg.Text('*Нажатие на строку с ценной бумагой отразит дивидендную доходность и\nисторию изменения цены',
+                 background_color="lightblue")]]
     sg.theme('BlueMono')
     new_win = sg.Window(info, layout, return_keyboard_events=True)
     while True:
@@ -149,7 +148,7 @@ def wind_table(list_data, list_columns, info):
             if info.find('Облигации') == -1:
                 index = search_index(str_mas[0], list_data, info)
             else:
-                index = search_index(str_mas[len(str_mas)-1], list_data, info)
+                index = search_index(str_mas[len(str_mas) - 1], list_data, info)
             index_page = int(index / 12) + 1
             new_win['-out-'].update(str(index_page) + ' из ' + str(page_count))
             new_win['-TABLE_RU-'].update(list_data[(index_page - 1) * 12:index_page * 12])
@@ -299,7 +298,7 @@ def wind_portfolio():
 
 # просмотр исторического портфеля
 def wind_history():
-    list_history_stocks = to_list(assets.history_stocks)
+    list_history_stocks = to_list_stocks(assets.history_stocks)
     list_history_bonds = to_list(assets.history_bonds)
     list_history_pies = to_list(assets.history_pies)
     layout = [[sg.Table(values=list_history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20,
@@ -409,7 +408,7 @@ def wind_auto_load():
         if event == 'Зач./Спис.':
             window['-Transaction-'].update(set_path('эачислению/списанию'))
         if event == 'Сохранить':
-            write_to_xml(values['-Deal-'], values['-Transaction-'])
+            write_to_json(values['-Deal-'], values['-Transaction-'])
         if event in (sg.WIN_CLOSED, 'Quit'):
             break
     window.close()

@@ -1,5 +1,3 @@
-from Assets import Assets
-from datetime import datetime
 from Binding import *
 
 assets = Assets()
@@ -7,11 +5,11 @@ assets = Assets()
 
 def load_data(parameter):
     if parameter == 1:
-        if assets.deposits_write_offs is None:
-            assets.deposits_write_offs = load_menu()
-            return assets.deposits_write_offs
+        if assets.doc_transactions is None:
+            assets.doc_transactions = load_menu()
+            return assets.doc_transactions
         else:
-            return assets.deposits_write_offs
+            return assets.doc_transactions
     if parameter == 0:
         if assets.doc_deals is None:
             assets.doc_deals = load_menu()

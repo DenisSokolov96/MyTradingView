@@ -1,8 +1,8 @@
 import Parsing
+import api_mcx
+import tools
 from Assets import Assets
 from Binding import check_none, handler_for_out
-import api_mcx
-from tools.StructRep import dict_pies
 
 assets = Assets()
 
@@ -16,7 +16,7 @@ def parsing_pies_portfolio(doc):
     for element in reversed(doc.values):
         if element[5] == 'Пай':
             if portfolio_pies.get(element[4]) is None:
-                portfolio_pies[element[4]] = dict_pies.copy()
+                portfolio_pies[element[4]] = tools.dict_pies.copy()
                 portfolio_pies[element[4]]['name'] = element[4]
                 portfolio_pies[element[4]]['count'] = element[8]
                 portfolio_pies[element[4]]['invest'] = round(element[16], 2)
@@ -88,4 +88,5 @@ def get_price(tiker):
     price = assets.pies.get(tiker)
     if price is not None:
         return price
-    return ""
+    #Возвращаю 0 если нет значения
+    return [0, tiker]
