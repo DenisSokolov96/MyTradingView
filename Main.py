@@ -12,6 +12,7 @@ import requests
 from AppLogger import file_logger
 from GUI import main_wind, wind_error
 from JSONRefact import load_json_files
+from ReadPropertiTicket import load_properties
 
 warnings.filterwarnings("ignore")
 
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     sg.set_global_icon(ico)
 
     load_json_files()
+    load_properties()
 
     if check_net():
         main_wind()

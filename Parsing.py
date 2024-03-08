@@ -4,15 +4,21 @@ assets = Assets()
 
 
 def load_data(parameter):
+    if parameter == 2:
+        if assets.doc_transactions_security is None:
+            assets.doc_transactions_security = load_menu(sheet_name='Движение ЦБ')
+            return assets.doc_transactions_security
+        else:
+            return assets.doc_transactions_security
     if parameter == 1:
         if assets.doc_transactions is None:
-            assets.doc_transactions = load_menu()
+            assets.doc_transactions = load_menu(sheet_name='Движение ДС')
             return assets.doc_transactions
         else:
             return assets.doc_transactions
     if parameter == 0:
         if assets.doc_deals is None:
-            assets.doc_deals = load_menu()
+            assets.doc_deals = load_menu(sheet_name='Сделки')
             return assets.doc_deals
         else:
             return assets.doc_deals
@@ -51,9 +57,9 @@ def write_offs(doc):
     coupon = round(coupon, 2)
     write_text = 'Зачисленная сумма:\t' + str(my_money) + 'р.\t'
     write_text += 'Зачисленно дивидендов:\t' + str(dividents) + 'р.\n'
-    write_text += 'Комисия составила:\t' + str(comission) + 'р.\t'
+    write_text += 'Комисия составила:\t' + str(comission) + 'р.\t\t'
     write_text += 'Доход с облигаций:\t' + str(coupon) + 'р.\n'
-    write_text += 'Оплачено налога:\t\t' + str(tax) + 'р.\t'
+    write_text += 'Оплачено налога:\t\t' + str(tax) + 'р.\t\t'
     write_text += 'Итог:\t\t\t' + str(round(my_money - comission - tax + dividents + coupon)) + 'р.\t\t'
     write_text += 'Другие суммы: ' + str(other) + 'р.\t'
 

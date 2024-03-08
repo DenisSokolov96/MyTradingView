@@ -18,9 +18,10 @@ def load_json_files():
             data = orjson.loads(f.read())
 
         if data["deals"] is not None:
-            assets.doc_deals = pd.read_excel(data["deals"][0])
+            assets.doc_deals = pd.read_excel(data["deals"][0], sheet_name='Сделки')
         if data["transactions"] is not None:
-            assets.doc_transactions = pd.read_excel(data["transactions"][0])
+            assets.doc_transactions = pd.read_excel(data["transactions"][0], sheet_name='Движение ДС')
+            assets.doc_transactions_security = pd.read_excel(data["transactions"][0], sheet_name='Движение ЦБ')
 
         file_logger.info("файл прочитан")
 

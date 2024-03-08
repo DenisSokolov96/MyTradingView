@@ -7,10 +7,14 @@ class Assets:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls._deposits_write_offs = None
+            cls._transfers_securities = None
             cls._doc_deals = None
             cls._portfolio_stocks = [[],[]]
             cls._portfolio_bonds = [[], []]
             cls._portfolio_pies = [[], []]
+
+            # old to new ticket
+            cls._old_to_new_tiket = {}
 
             # all real time
             cls._rus_stocks = {}
@@ -32,6 +36,14 @@ class Assets:
     @doc_transactions.setter
     def doc_transactions(cls, _deposits_write_offs):
         cls._deposits_write_offs = _deposits_write_offs
+
+    @property
+    def doc_transactions_security(cls):
+        return cls._transfers_securities
+
+    @doc_transactions_security.setter
+    def doc_transactions_security(cls, _transfers_securities):
+        cls._transfers_securities = _transfers_securities
 
     @property
     def doc_deals(cls):
@@ -120,3 +132,11 @@ class Assets:
     @history_pies.setter
     def history_pies(cls, _history_pies):
         cls._history_pies = _history_pies
+
+    @property
+    def old_to_new_tiket(cls):
+        return cls._old_to_new_tiket
+
+    @old_to_new_tiket.setter
+    def old_to_new_tiket(cls, _old_to_new_tiket):
+        cls._old_to_new_tiket = _old_to_new_tiket

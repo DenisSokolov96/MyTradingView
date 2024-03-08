@@ -1,24 +1,24 @@
+import Binding
 import Parsing
 import api_mcx
-import tools
 from Assets import Assets
-from Binding import check_none, handler_for_out, handler_for_out_STOCKS
-from Classes import ClassStock
+from SecuritiesClasses import ClassStock
 
 assets = Assets()
 
 
 def get_my_portfolio():
     if len(assets.portfolio_stocks[0]) > 0:
-        return handler_for_out_STOCKS(assets.portfolio_stocks)
+        return Binding.handler_for_out(assets.portfolio_stocks, "stock")
     else:
-        doc = Parsing.load_data(0)
-        if doc is None:
+        doc_deals = Parsing.load_data(0)
+        doc_trans_security = Parsing.load_data(2)
+        if doc_deals is None:
             return None, None
-        return handler_for_out_STOCKS(parsing_for_portfolio(doc))
+        return Binding.handler_for_out(start_parsing_stocks(doc_deals, doc_trans_security), "stock")
 
 
-def parsing_for_portfolio(doc):
+def start_parsing_stocks(doc_deals, doc_trans_security):
     if len(assets.rus_stocks) == 0:
         api_mcx.Handler.get_stocks_15m_ago('ru')
     if len(assets.unrus_stocks) == 0:
@@ -29,37 +29,43 @@ def parsing_for_portfolio(doc):
                    'Цена за одну р.', 'Прибыль р.', 'Страна']
     portfolio_stocks = {}
     history_stocks = {}
-    for element in reversed(doc.values):
+    for element in reversed(doc_deals.values):
         if element[5] == 'Акция' or element[5] == 'Депозитарная расписка':
-            if portfolio_stocks.get(element[4]) is None:
+            ticket = element[4]
+            if ticket in assets.old_to_new_tiket.keys():
+                ticket = assets.old_to_new_tiket[ticket]
+            if portfolio_stocks.get(ticket) is None:
                 stock = ClassStock()
                 if element[5] == 'Депозитарная расписка':
                     paper = 'Деп. рас.'
                     country = 'Др. стр.'
                 else:
                     paper = 'Акция'
-                    if element[4].find('-RM') != -1:
+                    if ticket.find('-RM') != -1:
                         country = 'США'
                     else:
                         country = 'Рос.'
-                stock.info_stocks = [paper, country, element[4]]
+                stock.info_stocks = [paper, country, ticket]
             else:
-                stock = portfolio_stocks.get(element[4])
-            stock.list_stock = [element[8], element[7], element[16]]
-            portfolio_stocks[element[4]] = stock
+                stock = portfolio_stocks.get(ticket)
+            stock.list_stocks = [element[8], element[7], element[16]]
+            portfolio_stocks[ticket] = stock
 
-    num = 1
+    for element in reversed(doc_trans_security.values):
+        if element[4].find("пай") == -1 and element[4].find("блигаци") == -1:
+            portfolio_stocks[element[3]].info_stocks['transfer'] = True
+
     for stock in portfolio_stocks.values():
-        stock.count_result(num)
-        if stock.info_stocks['count'] <= stock.info_stocks['sold_count']:
+        stock.add_property()
+        if stock.info_stocks['transfer'] is True:
             history_stocks[stock.info_stocks['tiker']] = stock
-        num += 1
+            continue
+        if stock.info_stocks['count'] == 0:
+            history_stocks[stock.info_stocks['tiker']] = stock
 
     for stock in history_stocks:
-        #tiker = stock.info_stocks()['tiker']
         del portfolio_stocks[stock]
 
     assets.portfolio_stocks = [list_header, portfolio_stocks]
-    assets.history_stocks = check_none(history_stocks, len(list_header))
+    assets.history_stocks = history_stocks
     return list_header, portfolio_stocks
-

@@ -1,23 +1,25 @@
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
-import PySimpleGUI as sg
-import Parsing
-import tools
-
-from Assets import Assets
-from datetime import datetime
 from matplotlib import pyplot as plt
+
+import Parsing
+from Assets import Assets
 from Parsing import *
+import PySimpleGUI as sg
+
+from SecuritiesClasses import Stocks, Bonds, Pie
 
 assets = Assets()
 
 
-def load_menu():
+def load_menu(sheet_name):
     ftypes = [('Документы', '*.xlsx'), ('Документы', '*.xls'), ('Все файлы', '*')]
     dlg = sg.filedialog.Open(filetypes=ftypes)
     fl = dlg.show()
     if fl != '':
-        df = pd.read_excel(fl)
+        df = pd.read_excel(fl, sheet_name=sheet_name)
         return df
     return
 
@@ -32,9 +34,14 @@ def create_graph():
     sum = 0
     date = []
     while count > 0:
-        if doc['Операция'][count] == 'Ввод ДС':
-            sum += round(doc['Сумма'][count], 2)
-            list_money.append(doc['Сумма'][count])
+        operation = doc['Операция'][count]
+        if operation == 'Ввод ДС' or operation == 'Вывод ДС':
+            if operation == 'Ввод ДС':
+                pay = round(doc['Сумма'][count], 2)
+            else:
+                pay = -round(doc['Сумма'][count], 2)
+            sum += pay
+            list_money.append(pay)
             lsit_sum.append(sum)
             d = datetime.strptime(str(doc['Дата исполнения поручения'][count]), '%Y-%m-%d %H:%M:%S')
             date.append(d.strftime("%d/%m/%y"))
@@ -80,27 +87,17 @@ def scan_list(return_count_list):
         labels.append(element.info_stocks['company'])
         explode.append(0.2)
     for element in assets.portfolio_bonds[1].values():
-        vals_money.append(element['invest'])
-        labels.append(element['company'])
+        vals_money.append(element.info_bonds['invest'])
+        labels.append(element.info_bonds['company'])
         explode.append(0.2)
     for element in assets.portfolio_pies[1].values():
-        vals_money.append(element['invest'])
-        labels.append(element['name'])
+        vals_money.append(element.info_pies['invest'])
+        labels.append(element.info_pies['name'])
         explode.append(0.2)
     if return_count_list == 2:
         return labels, vals_money
     else:
         return labels, vals_money, explode
-
-
-def check_none(history_list, count):
-    if len(history_list) > 0:
-        return history_list
-    else:
-        history_list['none'] = {}
-        for i in range(0, count):
-            history_list['none'][i] = '-'
-    return history_list
 
 
 def get_diagramma_compos():
@@ -119,12 +116,12 @@ def get_compos():
 
     sum = 0
     for element in assets.portfolio_bonds[1].values():
-        sum += element['invest']
+        sum += element.info_bonds['invest']
     vals_money.append(round(sum, 2))
 
     sum = 0
     for element in assets.portfolio_pies[1].values():
-        sum += element['invest']
+        sum += element.info_pies['invest']
     vals_money.append(round(sum, 2))
 
     return vals_money
@@ -156,8 +153,8 @@ def get_all_pies():
     labels = []
     vals_money = []
     for element in assets.portfolio_pies[1].values():
-        labels.append(element['name'])
-        vals_money.append(element['invest'])
+        labels.append(element.info_pies['name'])
+        vals_money.append(element.info_pies['invest'])
     write_diagramm(labels, vals_money, 'Состав фондов')
 
 
@@ -165,8 +162,8 @@ def get_all_bonds():
     labels = []
     vals_money = []
     for element in assets.portfolio_bonds[1].values():
-        labels.append(element['company'])
-        vals_money.append(element['invest'])
+        labels.append(element.info_bonds['company'])
+        vals_money.append(element.info_bonds['invest'])
     write_diagramm(labels, vals_money, 'Виды облигаций')
 
 
@@ -190,52 +187,48 @@ def write_diagramm(labels, vals_money, text_header):
     plt.show()
 
 
-def handler_for_out(data):
+def handler_for_out(data, security):
     list_header = data[0]
     list_value = []
 
     for dict in data[1].values():
         temp = []
-        for val in dict.values():
-            temp.append(val)
+        if security == "stock":
+            for val in dict.info_stocks.values():
+                temp.append(val)
+        if security == "bond":
+            for val in dict.info_bonds.values():
+                temp.append(val)
+        if security == "pie":
+            for val in dict.info_pies.values():
+                temp.append(val)
+
         list_value.append(temp)
 
     return list_header, list_value
 
 
-# Костыль, нужен чтобы проект запустился один раз необходимо переделывать все в Class... как в ClassStock
-def handler_for_out_STOCKS(data):
-    list_header = data[0]
-    list_value = []
-
-    for dict in data[1].values():
-        temp = []
-        for val in dict.info_stocks.values():
-            temp.append(val)
-        list_value.append(temp)
-
-    return list_header, list_value
-
-
-def to_list(data):
+def to_list(data, security):
     new_list = []
     for element_dict in data.values():
         temp = []
-        for el in element_dict.values():
-            temp.append(el)
-        new_list.append(temp)
+        if security == "stock" and element_dict.info_stocks is not None:
+            for el in element_dict.info_stocks.values():
+                temp.append(el)
+            new_list.append(temp)
+            continue
+        if security == "bond" and element_dict.info_bonds is not None:
+            for el in element_dict.info_bonds.values():
+                temp.append(el)
+            new_list.append(temp)
+            continue
+        if security == "pie" and element_dict.info_pies is not None:
+            for el in element_dict.info_pies.values():
+                temp.append(el)
+            new_list.append(temp)
+            continue
     return new_list
 
-
-#Костыль для запуска, нужно делать один общий метод
-def to_list_stocks(data):
-    new_list = []
-    for element_dict in data.values():
-        temp = []
-        for el in element_dict.info_stocks.values():
-            temp.append(el)
-        new_list.append(temp)
-    return new_list
 
 def redact(text):
     page = text.replace("\n\n", "\n")
@@ -280,9 +273,9 @@ def for_pies(list_data, str_search):
 
 
 def report_invest():
-    list_values_stocks = tools.Stocks.get_my_portfolio()[1:]
-    list_values_bonds = tools.Bonds.get_my_bonds()[1:]
-    list_values_pies = tools.Pie.get_my_pies()[1:]
+    list_values_stocks = Stocks.get_my_portfolio()[1:]
+    list_values_bonds = Bonds.get_my_portfolio()[1:]
+    list_values_pies = Pie.get_my_portfolio()[1:]
 
     list_headers = ['Ценная бумага', 'Инвестированно', 'Оценка активов сейчас', 'Изменение в р.', 'Изменение в %']
     list_data = []
@@ -306,8 +299,14 @@ def report_invest():
                       round(price_now - invest, 2), str(round(price_now * 100 / invest - 100, 2)) + " %"])
     invest_us = round(invest_us, 2)
     price_now_us = round(price_now_us, 2)
-    list_data.append(['Зарубежные акции', invest_us, price_now_us,
-                      round(price_now_us - invest_us, 2), str(round(price_now_us * 100 / invest_us - 100, 2)) + " %"])
+    if price_now_us > 0:
+        list_data.append(['Зарубежные акции', invest_us, price_now_us,
+                          round(price_now_us - invest_us, 2),
+                          str(round(price_now_us * 100 / invest_us - 100, 2)) + " %"])
+    else:
+        list_data.append(['Зарубежные акции', invest_us, price_now_us,
+                          round(price_now_us - invest_us, 2),
+                          "0 %"])
     # Облигации------------------------------------------------------------------------
     invest = 0.0
     price_now = 0.0
@@ -328,8 +327,11 @@ def report_invest():
             price_now += list_values_pies[0][i][5] + list_values_pies[0][i][4]
     invest = round(invest, 2)
     price_now = round(price_now, 2)
-    list_data.append(['ETF фонды', invest, price_now, round(price_now - invest, 2),
-                      str(round(price_now * 100 / invest - 100, 2)) + " %"])
+    if price_now > 0:
+        list_data.append(['ETF фонды', invest, price_now, round(price_now - invest, 2),
+                          str(round(price_now * 100 / invest - 100, 2)) + " %"])
+    else:
+        list_data.append(['ETF фонды', invest, price_now, round(price_now - invest, 2), "0 %"])
 
     invest = 0.0
     price_now = 0.0

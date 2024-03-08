@@ -1,6 +1,6 @@
 import math
+from datetime import datetime
 
-import tools
 import api_mcx
 from Parsing import *
 from JSONRefact import *
@@ -17,7 +17,7 @@ def main_wind():
     menu_def = [['&Информация', ['&Обновить новости', '&Торговые системы', '&Сводные обороты по рынкам']],
                 ['&Стоимость активов на бирже', ['&Российские акции', '&Зарубежные акции', '&Облигации', '&Фонды']],
                 ['&Мой портфель', ['&Общий отчет инвестиций', '&Просмотреть портфель', '&Мои сделки',
-                                   '&Операции по счету', '&График ввода ДС']],
+                                   '&Операции по счету', '&График потока ДС']],
                 ['&Настройки', ['&Автозагрузка файлов']]]
     news_list = api_mcx.Handler.get_list_news()
     str_date, str_value = api_mcx.Handler.get_securities_rates()
@@ -91,7 +91,7 @@ def func_menu(event, window, values, news_list):
         if doc is not None:
             wind_my_money(doc)
         return
-    if event == "График ввода ДС":
+    if event == "График потока ДС":
         create_graph()
     if event == "Просмотреть портфель":
         wind_portfolio()
@@ -162,7 +162,7 @@ def wind_my_money(doc):
     list_header, list_values, write_text = write_offs(doc)
     page_count = math.ceil(len(list_values) / 15)
     index_page = 1
-    layout = [[sg.Text(size=(80, 3), key='out', text=write_text)],
+    layout = [[sg.Text(size=(135, 3), key='out', text=write_text)],
               [sg.Table(values=list_values[:15], headings=list_header, def_col_width=20, max_col_width=40,
                         background_color='lightblue',
                         text_color='Black',
@@ -233,20 +233,23 @@ def wind_my_deals(doc):
 
 # просмотр портфеля
 def wind_portfolio():
-    list_header_stocks, list_values_stocks = tools.Stocks.get_my_portfolio()
-    list_header_bonds, list_values_bonds = tools.Bonds.get_my_bonds()
-    list_header_pies, list_values_pies = tools.Pie.get_my_pies()
+    list_header_stocks, list_values_stocks = Stocks.get_my_portfolio()
+    list_header_bonds, list_values_bonds = Bonds.get_my_portfolio()
+    list_header_pies, list_values_pies = Pie.get_my_portfolio()
 
     list_colors_stocks = []
     for i in range(0, len(list_values_stocks)):
+        list_values_stocks[i][0] = i + 1
         if type(list_values_stocks[i][6]) is float and list_values_stocks[i][6] > 0:
             list_colors_stocks.append([i, "green", "lightblue" if i % 2 else "white"])
     list_colors_bonds = []
     for i in range(0, len(list_values_bonds)):
+        list_values_bonds[i][0] = i + 1
         if type(list_values_bonds[i][5]) is float and list_values_bonds[i][5] > 0:
             list_colors_bonds.append([i, "green", "lightblue" if i % 2 else "white"])
     list_colors_pies = []
     for i in range(0, len(list_values_pies)):
+        list_values_pies[i][0] = i + 1
         if type(list_values_pies[i][4]) is float and list_values_pies[i][4] > 0:
             list_colors_pies.append([i, "green", "lightblue" if i % 2 else "white"])
 
@@ -260,17 +263,23 @@ def wind_portfolio():
     layout = [[sg.Menu(menu_def, tearoff=False)],
               [sg.Table(values=list_values_stocks, headings=list_header_stocks, def_col_width=20, max_col_width=40,
                         background_color='lightblue', text_color='Black', row_colors=list_colors_stocks,
-                        auto_size_columns=True, justification='centre', num_rows=7, alternating_row_color='white',
+                        auto_size_columns=True, justification='centre', alternating_row_color='white',
+                        num_rows=len(list_values_stocks) if len(list_values_stocks) < 7 else 7,
                         key='-TABLE_STOCKS-', selected_row_colors=('Black', 'lightgray'), row_height=30)],
               [sg.Table(values=list_values_bonds, headings=list_header_bonds, def_col_width=20, max_col_width=40,
                         background_color='lightblue', text_color='Black', row_colors=list_colors_bonds,
-                        auto_size_columns=True, justification='centre', num_rows=5, alternating_row_color='white',
+                        auto_size_columns=True, justification='centre', alternating_row_color='white',
+                        num_rows=len(list_values_bonds) if len(list_values_bonds) < 5 else 5,
                         key='-TABLE_BONDS-', selected_row_colors=('Black', 'lightgray'), row_height=30)],
               [sg.Table(values=list_values_pies, headings=list_header_pies, def_col_width=20, max_col_width=40,
                         background_color='lightblue', text_color='Black', row_colors=list_colors_pies,
-                        auto_size_columns=True, justification='centre', num_rows=5, alternating_row_color='white',
+                        auto_size_columns=True, justification='centre', alternating_row_color='white',
+                        num_rows=len(list_values_pies) if len(list_values_pies) < 5 else 5,
                         key='-TABLE_PIE-', selected_row_colors=('Black', 'lightgray'), row_height=30)]
               ]
+    if len(list_values_pies) == 0: layout.pop(3)
+    if len(list_values_bonds) == 0: layout.pop(2)
+    if len(list_values_stocks) == 0: layout.pop(1)
     sg.theme('BlueMono')
     new_win = sg.Window('Мои данные', layout)
     while True:
@@ -298,22 +307,35 @@ def wind_portfolio():
 
 # просмотр исторического портфеля
 def wind_history():
-    list_history_stocks = to_list_stocks(assets.history_stocks)
-    list_history_bonds = to_list(assets.history_bonds)
-    list_history_pies = to_list(assets.history_pies)
+    list_history_stocks = to_list(assets.history_stocks, "stock")
+    list_history_bonds = to_list(assets.history_bonds, "bond")
+    list_history_pies = to_list(assets.history_pies, "pie")
+    for i in range(0, len(list_history_stocks)):
+        list_history_stocks[i][0] = i + 1
+    for i in range(0, len(list_history_bonds)):
+        list_history_bonds[i][0] = i + 1
+    for i in range(0, len(list_history_pies)):
+        list_history_pies[i][0] = i + 1
     layout = [[sg.Table(values=list_history_stocks, headings=assets.portfolio_stocks[0], def_col_width=20,
                         max_col_width=40, background_color='lightblue', text_color='Black', auto_size_columns=True,
-                        justification='centre', num_rows=5, alternating_row_color='white', key='-TABLE_DEALS-',
+                        justification='centre', alternating_row_color='white', key='-TABLE_DEALS-',
+                        num_rows=len(list_history_stocks) if len(list_history_stocks) < 7 else 7,
                         selected_row_colors=('Black', 'lightgray'), row_height=30)],
               [sg.Table(values=list_history_bonds, headings=assets.portfolio_bonds[0], def_col_width=20,
                         max_col_width=40, background_color='lightblue', text_color='Black', auto_size_columns=True,
-                        justification='centre', num_rows=5, alternating_row_color='white', key='-TABLE_BONDS-',
+                        justification='centre', alternating_row_color='white', key='-TABLE_BONDS-',
+                        num_rows=len(list_history_bonds) if len(list_history_bonds) < 5 else 5,
                         selected_row_colors=('Black', 'lightgray'), row_height=30)],
               [sg.Table(values=list_history_pies, headings=assets.portfolio_pies[0], def_col_width=20,
                         max_col_width=40, background_color='lightblue', text_color='Black', auto_size_columns=True,
-                        justification='centre', num_rows=5, alternating_row_color='white', key='-TABLE_PIES-',
+                        justification='centre', alternating_row_color='white', key='-TABLE_PIES-',
+                        num_rows=len(list_history_pies) if len(list_history_pies) < 5 else 5,
                         selected_row_colors=('Black', 'lightgray'), row_height=30)]
               ]
+    if len(list_history_pies) == 0: layout.pop(2)
+    if len(list_history_bonds) == 0: layout.pop(1)
+    if len(list_history_stocks) == 0: layout.pop(0)
+
     sg.theme('BlueMono')
     new_win = sg.Window('Проданные активы', layout)
     while True:
